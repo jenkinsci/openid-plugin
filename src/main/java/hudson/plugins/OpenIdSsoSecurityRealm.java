@@ -202,9 +202,6 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     private GrantedAuthority[] createTeamMemberships(TeamExtensionResponse ter) {
-        // no team extension support
-        if (ter==null)  return new GrantedAuthority[]{AUTHENTICATED_AUTHORITY};
-
         List<String> l = ter.getTeamMembership();
         GrantedAuthority[] r = new GrantedAuthority[l.size()+1];
         int idx=0;
