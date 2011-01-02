@@ -29,12 +29,15 @@ import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
 import org.openid4java.consumer.VerificationResult;
+import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.ParameterList;
+import org.openid4java.message.ax.AxMessage;
 import org.openid4java.message.ax.FetchRequest;
+import org.openid4java.message.ax.FetchResponse;
 import org.openid4java.message.sreg.SRegMessage;
 import org.openid4java.message.sreg.SRegRequest;
 import org.openid4java.message.sreg.SRegResponse;
@@ -68,8 +71,18 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     private DiscoveryInformation getDiscoveredEndpoint() throws IOException, OpenIDException {
-        if (discoveredEndpoint==null)
-            discoveredEndpoint = new DiscoveryInformation(new URL(endpoint));
+        if (discoveredEndpoint==null) {
+//            String idOrUrl = endpoint;
+            String idOrUrl = "http://kohsuke.myopenid.com/";
+
+            // pretend that the endpoint URL is by itself an OpenID and find out an endpoint
+            // if that fails, assume  that the endpoint URL is the real endpoint URL.
+            List r = new Discovery().discover(idOrUrl);
+            if (r==null || r.isEmpty())
+                discoveredEndpoint = new DiscoveryInformation(new URL(idOrUrl));
+            else
+                discoveredEndpoint = (DiscoveryInformation)r.get(0);
+        }
         return discoveredEndpoint;
     }
 
@@ -169,14 +182,18 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
         String openid = verified.getIdentifier();
 
-        SRegResponse sregResp = (SRegResponse) authSuccess.getExtension(SRegMessage.OPENID_NS_SREG);
-        String nick = sregResp.getAttributeValue("nickname");
+        SRegResponse sr = (SRegResponse) authSuccess.getExtension(SRegMessage.OPENID_NS_SREG);
+        String nick = sr.getAttributeValue("nickname");
+        String fullName = sr.getAttributeValue("fullname");
+        String email = sr.getAttributeValue("email");
 
+        FetchResponse fr = (FetchResponse) authSuccess.getExtension(AxMessage.OPENID_NS_AX);
 
         TeamExtensionResponse ter = (TeamExtensionResponse) authSuccess.getExtension(TeamExtensionFactory.URI);
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                 nick!=null?nick:openid, "", createTeamMemberships(ter));
+        // token.setDetails();  TODO: set user details service
         SecurityContextHolder.getContext().setAuthentication(token);
 
 
@@ -185,11 +202,15 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     private GrantedAuthority[] createTeamMemberships(TeamExtensionResponse ter) {
+        // no team extension support
+        if (ter==null)  return new GrantedAuthority[]{AUTHENTICATED_AUTHORITY};
+
         List<String> l = ter.getTeamMembership();
-        GrantedAuthority[] r = new GrantedAuthority[l.size()];
+        GrantedAuthority[] r = new GrantedAuthority[l.size()+1];
         int idx=0;
         for (String s : l)
             r[idx++] = new GrantedAuthorityImpl(s);
+        r[idx++] = AUTHENTICATED_AUTHORITY;
         return r;
     }
 
