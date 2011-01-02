@@ -50,14 +50,27 @@ import java.util.List;
  */
 public class OpenIdSsoSecurityRealm extends SecurityRealm {
     private final ConsumerManager manager;
-    private final DiscoveryInformation endpoint;
+//    private final DiscoveryInformation endpoint;
+
+    // for example, https://login.launchpad.net/+openid
+    // 
+    public final String endpoint;
+
+    private transient volatile DiscoveryInformation discoveredEndpoint;
 
     @DataBoundConstructor
-    public OpenIdSsoSecurityRealm() throws IOException, OpenIDException {
+    public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
         manager = new ConsumerManager();
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
-        endpoint = new DiscoveryInformation(new URL("https://login.launchpad.net/+openid"));
+        this.endpoint = endpoint;
+        getDiscoveredEndpoint();
+    }
+
+    private DiscoveryInformation getDiscoveredEndpoint() throws IOException, OpenIDException {
+        if (discoveredEndpoint==null)
+            discoveredEndpoint = new DiscoveryInformation(new URL(endpoint));
+        return discoveredEndpoint;
     }
 
     /**
@@ -90,7 +103,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      * The login process starts from here.
      */
     public HttpResponse doCommenceLogin(StaplerRequest request, @Header("Referer") String referer) throws IOException, OpenIDException {
-        final AuthRequest authReq = manager.authenticate(endpoint, Hudson.getInstance().getRootUrl()+"securityRealm/finishLogin?referer="+referer);
+        final AuthRequest authReq = manager.authenticate(getDiscoveredEndpoint(), Hudson.getInstance().getRootUrl()+"securityRealm/finishLogin?referer="+referer);
 
         // request some user information
         // see http://code.google.com/apis/accounts/docs/OpenID.html
@@ -144,7 +157,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
         // verify the response
         VerificationResult verification = manager.verify(
-                receivingURL.toString(), responselist, endpoint);
+                receivingURL.toString(), responselist, getDiscoveredEndpoint());
 
         // examine the verification result and extract the verified identifier
         Identifier verified = verification.getVerifiedId();
