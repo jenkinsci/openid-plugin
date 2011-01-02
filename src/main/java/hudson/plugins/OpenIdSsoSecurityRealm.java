@@ -3,25 +3,21 @@ package hudson.plugins;
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
 import com.cloudbees.openid4java.team.TeamExtensionResponse;
-import groovy.lang.Binding;
 import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Failure;
 import hudson.model.Hudson;
 import hudson.security.SecurityRealm;
-import hudson.util.spring.BeanBuilder;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
 import org.acegisecurity.BadCredentialsException;
 import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.GrantedAuthorityImpl;
+import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.acegisecurity.providers.anonymous.AnonymousAuthenticationToken;
-import org.acegisecurity.userdetails.User;
-import org.acegisecurity.userdetails.UserDetails;
-import org.acegisecurity.userdetails.UserDetailsService;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
-import org.jvnet.libpam.UnixUser;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
@@ -39,14 +35,15 @@ import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.ParameterList;
 import org.openid4java.message.ax.FetchRequest;
+import org.openid4java.message.sreg.SRegMessage;
 import org.openid4java.message.sreg.SRegRequest;
-import org.springframework.dao.DataAccessException;
-import org.springframework.web.context.WebApplicationContext;
+import org.openid4java.message.sreg.SRegResponse;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -55,6 +52,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     private final ConsumerManager manager;
     private final DiscoveryInformation endpoint;
 
+    @DataBoundConstructor
     public OpenIdSsoSecurityRealm() throws IOException, OpenIDException {
         manager = new ConsumerManager();
         manager.setAssociations(new InMemoryConsumerAssociationStore());
@@ -63,7 +61,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     /**
-     * Login begins with our {@link #doCommenceLogin()} method.
+     * Login begins with our {@link #doCommenceLogin(StaplerRequest, String)} method.
      */
     @Override
     public String getLoginUrl() {
@@ -156,14 +154,30 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         AuthSuccess authSuccess =
                 (AuthSuccess) verification.getAuthResponse();
 
-        String openid = authSuccess.getIdentity();
-        String claimedOpenid = authSuccess.getClaimed();
+        String openid = verified.getIdentifier();
+
+        SRegResponse sregResp = (SRegResponse) authSuccess.getExtension(SRegMessage.OPENID_NS_SREG);
+        String nick = sregResp.getAttributeValue("nickname");
+
 
         TeamExtensionResponse ter = (TeamExtensionResponse) authSuccess.getExtension(TeamExtensionFactory.URI);
-        System.out.println(ter.getTeamMembership());
+
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                nick!=null?nick:openid, "", createTeamMemberships(ter));
+        SecurityContextHolder.getContext().setAuthentication(token);
+
 
         if (referer!=null)  return redirect(referer);
         return HttpResponses.redirectToContextRoot();
+    }
+
+    private GrantedAuthority[] createTeamMemberships(TeamExtensionResponse ter) {
+        List<String> l = ter.getTeamMembership();
+        GrantedAuthority[] r = new GrantedAuthority[l.size()];
+        int idx=0;
+        for (String s : l)
+            r[idx++] = new GrantedAuthorityImpl(s);
+        return r;
     }
 
 
