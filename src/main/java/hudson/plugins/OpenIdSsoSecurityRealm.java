@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -202,7 +203,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     private GrantedAuthority[] createTeamMemberships(TeamExtensionResponse ter) {
-        List<String> l = ter.getTeamMembership();
+        Set<String> l = ter.getTeamMembership();
         GrantedAuthority[] r = new GrantedAuthority[l.size()+1];
         int idx=0;
         for (String s : l)
