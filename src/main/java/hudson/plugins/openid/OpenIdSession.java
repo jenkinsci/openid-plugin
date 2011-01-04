@@ -7,7 +7,6 @@ import hudson.model.Hudson;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
@@ -19,28 +18,29 @@ import org.openid4java.message.ParameterList;
 import org.openid4java.message.ax.FetchRequest;
 import org.openid4java.message.sreg.SRegRequest;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Represents state for an OpenID authentication.
+ *
  * @author Kohsuke Kawaguchi
  */
 public abstract class OpenIdSession {
     private final ConsumerManager manager;
     private final DiscoveryInformation endpoint;
-    private final String thisUrl;
+    private final String finishUrl;
 
-    public OpenIdSession(ConsumerManager manager, DiscoveryInformation endpoint, String thisUrl) {
+    public OpenIdSession(ConsumerManager manager, DiscoveryInformation endpoint, String finishUrl) {
         this.manager = manager;
         this.endpoint = endpoint;
-        this.thisUrl = thisUrl;
+        this.finishUrl = finishUrl;
     }
 
-    public OpenIdSession(ConsumerManager manager, String openid, String thisUrl) throws OpenIDException {
+    public OpenIdSession(ConsumerManager manager, String openid, String finishUrl) throws OpenIDException {
         this.manager = manager;
-        this.thisUrl = thisUrl;
+        this.finishUrl = finishUrl;
 
         List discoveries = manager.discover(openid);
         endpoint = manager.associate(discoveries);
@@ -50,7 +50,7 @@ public abstract class OpenIdSession {
      * Starts the login session.
      */
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
-        final AuthRequest authReq = manager.authenticate(endpoint, Hudson.getInstance().getRootUrl()+thisUrl+"/finishLogin");
+        final AuthRequest authReq = manager.authenticate(endpoint, Hudson.getInstance().getRootUrl()+ finishUrl);
 
         // request some user information
         // see http://code.google.com/apis/accounts/docs/OpenID.html
@@ -103,24 +103,6 @@ public abstract class OpenIdSession {
                 (AuthSuccess) verification.getAuthResponse();
 
         return onSuccess(new Identity(authSuccess));
-//        String openid = verified.getIdentifier();
-//
-//        SRegResponse sr = (SRegResponse) authSuccess.getExtension(SRegMessage.OPENID_NS_SREG);
-//        String nick = sr.getAttributeValue("nickname");
-//        String fullName = sr.getAttributeValue("fullname");
-//        String email = sr.getAttributeValue("email");
-//
-//        FetchResponse fr = (FetchResponse) authSuccess.getExtension(AxMessage.OPENID_NS_AX);
-//
-//        TeamExtensionResponse ter = (TeamExtensionResponse) authSuccess.getExtension(TeamExtensionFactory.URI);
-//
-//        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-//                nick!=null?nick:openid, "", createTeamMemberships(ter));
-//        // token.setDetails();  TODO: set user details service
-//        SecurityContextHolder.getContext().setAuthentication(token);
-//
-//        if (referer!=null)  return redirect(referer);
-//        return HttpResponses.redirectToContextRoot();
     }
 
     protected abstract HttpResponse onSuccess(Identity identity) throws IOException;

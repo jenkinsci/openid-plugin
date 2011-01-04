@@ -6,6 +6,8 @@ import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.Stapler;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
@@ -40,7 +42,7 @@ public class OpenIdLoginService extends FederatedLoginService {
      * Commence a login.
      */
     public HttpResponse doLogin(@QueryParameter String openid, @QueryParameter final String from) throws OpenIDException, IOException {
-        OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/session") {
+        OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 if (onIdentified(identity.openId)) {
@@ -55,12 +57,14 @@ public class OpenIdLoginService extends FederatedLoginService {
         return s.doCommenceLogin();
     }
 
-    public OpenIdSession getSession() {
-        return (OpenIdSession)Stapler.getCurrentRequest().getSession().getAttribute(SESSION_NAME);
+    public HttpResponse doFinish(StaplerRequest request) throws IOException, OpenIDException {
+        OpenIdSession session = (OpenIdSession) Stapler.getCurrentRequest().getSession().getAttribute(SESSION_NAME);
+        if (session==null)  return HttpResponses.error(StaplerResponse.SC_BAD_REQUEST,new Exception("no session"));
+        return session.doFinishLogin(request);
     }
 
     public HttpResponse doAssociate(@QueryParameter String openid) throws OpenIDException, IOException {
-        OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/session") {
+        OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 return onAssociated(identity.openId);
