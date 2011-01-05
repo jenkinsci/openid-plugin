@@ -38,7 +38,7 @@ public class Identity {
         fullName = sr.getAttributeValue("fullname");
         email = sr.getAttributeValue("email");
 
-        FetchResponse fr = (FetchResponse) authSuccess.getExtension(AxMessage.OPENID_NS_AX);
+//        FetchResponse fr = (FetchResponse) authSuccess.getExtension(AxMessage.OPENID_NS_AX);
 
         TeamExtensionResponse ter = (TeamExtensionResponse) authSuccess.getExtension(TeamExtensionFactory.URI);
         this.teams = createTeamMemberships(ter);

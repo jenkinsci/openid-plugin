@@ -25,10 +25,9 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <div style="padding-top:1em">
     <h2>${%Login with OpenID}</h2>
-    <form method="post" action="federatedLoginService/openid/login">
+    <form method="post" action="federatedLoginService/openid/login" id="openid_form">
       <st:include page="_openid-form-body.jelly" />
       <input type="hidden" name="from" value="${request.getParameter('from')}"/>
-      <f:submit value="${%Login}" />
     </form>
   </div>
 </j:jelly>

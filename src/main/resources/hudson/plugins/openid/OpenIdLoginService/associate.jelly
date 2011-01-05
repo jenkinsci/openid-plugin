@@ -6,7 +6,7 @@
   <l:layout title="${%Associate OpenID}">
     <l:main-panel>
       <h1>${%Associate OpenID}</h1>
-      <form method="post" action="startAssociate">
+      <form method="post" action="startAssociate" id="openid_form">
         <st:include page="_openid-form-body.jelly" />
         <f:submit value="${%Login}" />
       </form>
