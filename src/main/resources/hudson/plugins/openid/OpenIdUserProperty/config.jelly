@@ -25,7 +25,7 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:entry title="${%OpenIDs}">
     <ul>
-      <j:forEach var="id" items="${it.identifiers}">
+      <j:forEach var="id" items="${instance.identifiers}">
         <li>
           ${id}
           <input type="hidden" value="${id}" name="identifier"/>
