@@ -33,8 +33,7 @@ THE SOFTWARE.
         </li>
       </j:forEach>
     </ul>
-    <form method="post" target="_new" action="${rootURL}/federatedLoginService/openid/associate">
-      <f:submit value="${%Associate OpenID}"/>
-    </form>
+    <input type="button" class='yui-button' value="${%Associate OpenID}"
+           onclick="window.location='${rootURL}/federatedLoginService/openid/associate'" />
   </f:entry>
 </j:jelly>
