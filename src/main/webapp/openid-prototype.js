@@ -83,7 +83,7 @@ var openid = {
 	/**
 	 * Provider image click
 	 * 
-	 * @return {Void}
+	 * @return {void}
 	 */
 	signin : function(box_id, onload) {
 		var provider = providers[box_id];
