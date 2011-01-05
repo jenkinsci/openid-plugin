@@ -28,12 +28,24 @@ THE SOFTWARE.
       <j:forEach var="id" items="${instance.identifiers}">
         <li>
           ${id}
-          <input type="hidden" value="${id}" name="identifier"/>
+          <input type="hidden" value="${id}" name="identifiers"/>
           <input type="button" value="${%Delete}" class="openid-delete" />
         </li>
       </j:forEach>
     </ul>
     <input type="button" class='yui-button' value="${%Associate OpenID}"
            onclick="window.location='${rootURL}/federatedLoginService/openid/associate'" />
+    <script>
+      Behaviour.register({
+        "INPUT.openid-delete" : function (e) {
+            makeButton(e,function(e) {
+              Element.remove(findAncestor(e.target,"LI")); // delete the whole LI
+            });
+        }
+      });
+    </script>
+
+    <!-- a pointless value, just to make browser submit something -->
+    <input type="hidden" value="bogus" name="bogus"/>
   </f:entry>
 </j:jelly>

@@ -9,13 +9,15 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.util.Collections;
 import java.util.Set;
 
+import static hudson.Util.*;
+
 /**
  * @author Kohsuke Kawaguchi
  */
 public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
     @DataBoundConstructor
     public OpenIdUserProperty(Set<String> identifiers) {
-        super(identifiers);
+        super(fixNull(identifiers));
     }
 
     @Extension
