@@ -41,7 +41,7 @@ public class OpenIdLoginService extends FederatedLoginService {
     /**
      * Commence a login.
      */
-    public HttpResponse doLogin(@QueryParameter String openid, @QueryParameter final String from) throws OpenIDException, IOException {
+    public HttpResponse doStartLogin(@QueryParameter String openid, @QueryParameter final String from) throws OpenIDException, IOException {
         OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {

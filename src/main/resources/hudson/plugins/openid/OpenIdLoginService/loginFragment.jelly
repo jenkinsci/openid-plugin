@@ -23,11 +23,16 @@ THE SOFTWARE.
 -->
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <div style="padding-top:1em">
-    <h2>${%Login with OpenID}</h2>
-    <form method="post" action="federatedLoginService/openid/login" id="openid_form">
-      <st:include page="_openid-form-body.jelly" />
+  <div style="padding-top:3em">
+    <form method="get" class='no-json' action="federatedLoginService/openid/login">
       <input type="hidden" name="from" value="${request.getParameter('from')}"/>
+      <input type="submit" value="${%Login with OpenID}" class="submit-button" id='login-with-openid'/>
+      <style>
+        #login-with-openid button {
+          padding-left:26px;
+          background: url('${rootURL}/plugin/openid/openid.png') 5px center no-repeat;
+        }
+      </style>
     </form>
   </div>
 </j:jelly>
