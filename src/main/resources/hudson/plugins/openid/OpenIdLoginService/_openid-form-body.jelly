@@ -1,5 +1,5 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <div style="padding:0.5em">
+  <div>
     <link type="text/css" rel="stylesheet" href="${rootURL}/plugin/openid/openid.css"/>
     <script type="text/javascript" src="${rootURL}/plugin/openid//openid-prototype.js"/>
     <script type="text/javascript" src="${rootURL}/plugin/openid//openid-en.js"/>
