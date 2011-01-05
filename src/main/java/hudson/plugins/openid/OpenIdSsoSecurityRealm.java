@@ -1,4 +1,4 @@
-package hudson.plugins;
+package hudson.plugins.openid;
 
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
