@@ -1,0 +1,5 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <div style="padding:0.5em">
+    OpenID: <input type="text" name="openid" style="background: url('${rootURL}/plugin/openid/openid.gif') center left no-repeat; padding-left:20px"/>
+  </div>
+</j:jelly>

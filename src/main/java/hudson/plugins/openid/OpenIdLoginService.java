@@ -63,7 +63,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         return session.doFinishLogin(request);
     }
 
-    public HttpResponse doAssociate(@QueryParameter String openid) throws OpenIDException, IOException {
+    public HttpResponse doStartAssociate(@QueryParameter String openid) throws OpenIDException, IOException {
         OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {

@@ -1,0 +1,15 @@
+<!--
+  Ask the user to provide an OpenID to associate with the current user account
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
+  <l:layout title="${%Associate OpenID}">
+    <l:main-panel>
+      <h1>${%Associate OpenID}</h1>
+      <form method="post" action="startAssociate">
+        <st:include page="_openid-form-body.jelly" />
+        <f:submit value="${%Login}" />
+      </form>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>

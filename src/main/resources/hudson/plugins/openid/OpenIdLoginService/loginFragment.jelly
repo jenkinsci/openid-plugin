@@ -26,9 +26,7 @@ THE SOFTWARE.
   <div style="padding-top:1em">
     <h2>${%Login with OpenID}</h2>
     <form method="post" action="federatedLoginService/openid/login">
-      <div style="padding:0.5em">
-        OpenID: <input type="text" name="openid" style="background: url('${rootURL}/plugin/openid/openid.gif') center left no-repeat; padding-left:20px"/>
-      </div>
+      <st:include page="_openid-form-body.jelly" />
       <input type="hidden" name="from" value="${request.getParameter('from')}"/>
       <f:submit value="${%Login}" />
     </form>
