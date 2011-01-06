@@ -1,6 +1,8 @@
 package hudson.plugins.openid;
 
 import hudson.Extension;
+import hudson.security.FederatedLoginService;
+import hudson.security.FederatedLoginServiceUserProperty;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
@@ -67,7 +69,8 @@ public class OpenIdLoginService extends FederatedLoginService {
         OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
-                return onAssociated(identity.openId);
+                onAssociated(identity.openId);
+                return new HttpRedirect("onAssociationSuccess");
             }
         };
         Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,s);

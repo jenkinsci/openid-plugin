@@ -4,6 +4,7 @@ import hudson.Extension;
 import hudson.model.User;
 import hudson.model.UserProperty;
 import hudson.model.UserPropertyDescriptor;
+import hudson.security.FederatedLoginServiceUserProperty;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.Collections;
