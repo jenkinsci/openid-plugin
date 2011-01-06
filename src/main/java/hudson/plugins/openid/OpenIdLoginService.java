@@ -47,12 +47,13 @@ public class OpenIdLoginService extends FederatedLoginService {
         OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
-                if (onIdentified(identity.openId)) {
-                    if (from!=null)  return new HttpRedirect(from);
+                try {
+                    new IdentityImpl(identity).signin();
                     return HttpResponses.redirectToContextRoot();
-                } else
+                } catch (UnclaimedIdentityException e) {
                     // TODO: initiate the sign up
                     throw new UnsupportedOperationException();
+                }
             }
         };
         Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,s);
@@ -69,7 +70,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
-                onAssociated(identity.openId);
+                new IdentityImpl(identity).addToCurrentUser();
                 return new HttpRedirect("onAssociationSuccess");
             }
         };
@@ -77,6 +78,33 @@ public class OpenIdLoginService extends FederatedLoginService {
         return s.doCommenceLogin();
     }
 
+    public class IdentityImpl extends FederatedLoginService.FederatedIdentity {
+        private final Identity id;
+
+        public IdentityImpl(Identity id) {
+            this.id = id;
+        }
+
+        @Override
+        public String getIdentifier() {
+            return id.openId;
+        }
+
+        @Override
+        public String getNickname() {
+            return id.nick;
+        }
+
+        @Override
+        public String getFullName() {
+            return id.fullName;
+        }
+
+        @Override
+        public String getEmailAddress() {
+            return id.email;
+        }
+    }
 
     private static final String SESSION_NAME = OpenIdLoginService.class.getName();
 }
