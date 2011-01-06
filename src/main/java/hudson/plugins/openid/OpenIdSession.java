@@ -6,6 +6,7 @@ import hudson.model.Failure;
 import hudson.model.Hudson;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
@@ -73,6 +74,9 @@ public abstract class OpenIdSession {
 
         String url = authReq.getDestinationUrl(true);
 
+        // remember this in the session
+        Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,this);
+
         return new HttpRedirect(url);
     }
 
@@ -107,7 +111,16 @@ public abstract class OpenIdSession {
 
     protected abstract HttpResponse onSuccess(Identity identity) throws IOException;
 
+    /**
+     * Gets the {@link OpenIdSession} associated with HTTP session in the current request.
+     */
+    public static OpenIdSession getCurrent() {
+        return (OpenIdSession) Stapler.getCurrentRequest().getSession().getAttribute(SESSION_NAME);
+    }
+
     static {
         TeamExtensionFactory.install();
     }
+
+    private static final String SESSION_NAME = OpenIdSession.class.getName();
 }

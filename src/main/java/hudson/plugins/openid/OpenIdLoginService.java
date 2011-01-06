@@ -44,7 +44,7 @@ public class OpenIdLoginService extends FederatedLoginService {
      * Commence a login.
      */
     public HttpResponse doStartLogin(@QueryParameter String openid, @QueryParameter final String from) throws OpenIDException, IOException {
-        OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
+        return new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 try {
@@ -55,27 +55,21 @@ public class OpenIdLoginService extends FederatedLoginService {
                     throw new UnsupportedOperationException();
                 }
             }
-        };
-        Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,s);
-        return s.doCommenceLogin();
+        }.doCommenceLogin();
     }
 
     public HttpResponse doFinish(StaplerRequest request) throws IOException, OpenIDException {
-        OpenIdSession session = (OpenIdSession) Stapler.getCurrentRequest().getSession().getAttribute(SESSION_NAME);
-        if (session==null)  return HttpResponses.error(StaplerResponse.SC_BAD_REQUEST,new Exception("no session"));
-        return session.doFinishLogin(request);
+        return OpenIdSession.getCurrent().doFinishLogin(request);
     }
 
     public HttpResponse doStartAssociate(@QueryParameter String openid) throws OpenIDException, IOException {
-        OpenIdSession s = new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
+        return new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 new IdentityImpl(identity).addToCurrentUser();
                 return new HttpRedirect("onAssociationSuccess");
             }
-        };
-        Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,s);
-        return s.doCommenceLogin();
+        }.doCommenceLogin();
     }
 
     public class IdentityImpl extends FederatedLoginService.FederatedIdentity {
@@ -105,6 +99,4 @@ public class OpenIdLoginService extends FederatedLoginService {
             return id.email;
         }
     }
-
-    private static final String SESSION_NAME = OpenIdLoginService.class.getName();
 }
