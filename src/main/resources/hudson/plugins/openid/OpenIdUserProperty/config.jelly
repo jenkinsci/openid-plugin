@@ -45,7 +45,7 @@ THE SOFTWARE.
       });
     </script>
 
-    <!-- a pointless value, just to make browser submit something -->
+    <!-- a pointless value, just to make browser submit something even when there's no OpenID associated -->
     <input type="hidden" value="bogus" name="bogus"/>
   </f:entry>
 </j:jelly>
