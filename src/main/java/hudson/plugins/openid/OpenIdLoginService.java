@@ -4,7 +4,6 @@ import hudson.Extension;
 import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
-import hudson.security.HudsonPrivateSecurityRealm.Details;
 import hudson.tasks.Mailer;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
@@ -107,10 +106,9 @@ public class OpenIdLoginService extends FederatedLoginService {
             return id.email;
         }
 
-        public User signin() throws UnclaimedIdentityException {
-            User u = super.signin();
-
+        @Override
+        public String getPronoun() {
+            return "OpenID";
         }
-
     }
 }
