@@ -7,8 +7,6 @@ import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
 import org.openid4java.OpenIDException;
 import org.openid4java.message.AuthSuccess;
-import org.openid4java.message.ax.AxMessage;
-import org.openid4java.message.ax.FetchResponse;
 import org.openid4java.message.sreg.SRegMessage;
 import org.openid4java.message.sreg.SRegResponse;
 
