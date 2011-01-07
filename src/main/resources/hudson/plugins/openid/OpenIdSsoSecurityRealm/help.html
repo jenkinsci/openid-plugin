@@ -1,0 +1,21 @@
+<div>
+    Use one OpenID provider as the definitive authentication source to achieve SSO semantics.
+
+    <p>
+    With this option, users will be authenticated against a single external OpenID provider for
+    their identities. The nick name provided by this identity provider becomes the user ID in Hudson.
+
+    This also supports the <a href="https://dev.launchpad.net/OpenIDTeams">OpenID teams extension</a>
+    so that the authorization strategy can be defined against teams.
+
+    <p>
+    Depending on how you configure the authorization, you can achieve various different semantics.
+    For example, if you do "logged-in users can do anything", you can require people to login
+    whenever they make changes.
+
+    If you do "matrix-based security" and deprive the read access from anonymous users and give
+    full control to the "authenticated" group, you now require everyone to be logged in all the time
+    (and the sign-in process happens automatically.) Alternatively, you can give full control to
+    a particular group, which restricts the use of Hudson to a subset of all the users defined in your
+    OpenID provider.
+</div>
