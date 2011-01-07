@@ -1,5 +1,3 @@
-3. The way Hudson roundtrips OpenIDs currently associated with an user is insecure
-
 4. Finish the SSO security realm
 
 5. OpenID SSO realm needs to support user registration

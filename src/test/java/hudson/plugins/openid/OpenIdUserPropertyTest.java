@@ -19,5 +19,12 @@ public class OpenIdUserPropertyTest extends HudsonTestCase {
 
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertTrue(p.getIdentifiers().isEmpty());
+
+
+        // submit a non-empty config
+        p.addIdentifier("http://me.cloudbees.com/");
+        submit(wc.goTo("user/alice/configure").getFormByName("config"));
+        p = u.getProperty(OpenIdUserProperty.class);
+        assertTrue(p.has("http://me.cloudbees.com/"));
     }
 }

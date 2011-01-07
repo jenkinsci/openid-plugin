@@ -25,10 +25,10 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:entry title="${%OpenIDs}">
     <ul>
-      <j:forEach var="id" items="${instance.identifiers}">
+      <j:forEach var="id" items="${instance.getProtectedOpenIDs()}">
         <li>
           ${id}
-          <input type="hidden" value="${id}" name="identifiers"/>
+          <input type="hidden" value="${id.encryptedValue}" name="identifiers"/>
           <input type="button" value="${%Delete}" class="openid-delete" />
         </li>
       </j:forEach>
