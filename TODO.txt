@@ -1,4 +1,1 @@
 Define an extension point to read group information. Implement the team extension support
-
-8. Define a permission for registration so that only a subset of users can use Hudson in #5.
-   -> READ permission would do.
