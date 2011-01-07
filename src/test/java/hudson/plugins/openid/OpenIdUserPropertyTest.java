@@ -48,6 +48,6 @@ public class OpenIdUserPropertyTest extends HudsonTestCase {
 
         // should see No OpenID descriptor
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
-        assertNull(p);
+        assertTrue(p==null || p.getIdentifiers().isEmpty());
     }
 }
