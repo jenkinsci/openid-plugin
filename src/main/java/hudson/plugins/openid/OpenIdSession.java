@@ -69,7 +69,7 @@ public abstract class OpenIdSession {
 
         // request team information
         TeamExtensionRequest req = new TeamExtensionRequest();
-        req.setQueryMembership(Arrays.asList("foo","shopalong-devs"));
+        req.setQueryMembership(Arrays.asList("foo","shopalong-devs")); // TODO: fill this with real roles
         authReq.addExtension(req);
 
         String url = authReq.getDestinationUrl(true);
@@ -80,13 +80,13 @@ public abstract class OpenIdSession {
         return new HttpRedirect(url);
     }
 
+    /**
+     * When the identity provider is done with its thing, the user comes back here.
+     */
     public HttpResponse doFinishLogin(StaplerRequest request) throws IOException, OpenIDException {
-        // --- processing the authentication response
-
         // extract the parameters from the authentication response
         // (which comes in as a HTTP request from the OpenID provider)
-        ParameterList responselist =
-                new ParameterList(request.getParameterMap());
+        ParameterList responselist = new ParameterList(request.getParameterMap());
 
         // extract the receiving URL from the HTTP request
         StringBuffer receivingURL = request.getRequestURL();
@@ -95,17 +95,14 @@ public abstract class OpenIdSession {
             receivingURL.append("?").append(request.getQueryString());
 
         // verify the response
-        VerificationResult verification = manager.verify(
-                receivingURL.toString(), responselist, endpoint);
+        VerificationResult verification = manager.verify(receivingURL.toString(), responselist, endpoint);
 
         // examine the verification result and extract the verified identifier
         Identifier verified = verification.getVerifiedId();
         if (verified == null)
             throw new Failure("Failed to login");
 
-        AuthSuccess authSuccess =
-                (AuthSuccess) verification.getAuthResponse();
-
+        AuthSuccess authSuccess = (AuthSuccess) verification.getAuthResponse();
         return onSuccess(new Identity(authSuccess));
     }
 
