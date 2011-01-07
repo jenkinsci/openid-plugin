@@ -1,9 +1,11 @@
 package hudson.plugins.openid;
 
 import hudson.Extension;
+import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.model.UserProperty;
 import hudson.model.UserPropertyDescriptor;
+import hudson.security.AbstractPasswordBasedSecurityRealm;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.util.Secret;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -47,6 +49,11 @@ public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
         @Override
         public UserProperty newInstance(User user) {
             return new OpenIdUserProperty(Collections.<String>emptySet());
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return Hudson.getInstance().getSecurityRealm() instanceof AbstractPasswordBasedSecurityRealm;
         }
 
         @Override
