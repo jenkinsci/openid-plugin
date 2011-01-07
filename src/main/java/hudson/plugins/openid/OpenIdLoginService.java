@@ -1,8 +1,11 @@
 package hudson.plugins.openid;
 
 import hudson.Extension;
+import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
+import hudson.security.HudsonPrivateSecurityRealm.Details;
+import hudson.tasks.Mailer;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
@@ -46,7 +49,14 @@ public class OpenIdLoginService extends FederatedLoginService {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 try {
-                    new IdentityImpl(identity).signin();
+                    User u = new IdentityImpl(identity).signin();
+
+                    // update the user profile by the externally given information
+                    if (identity.fullName!=null)
+                        u.setFullName(identity.fullName);
+                    if (identity.email!=null)
+                        u.addProperty(new Mailer.UserProperty(identity.email));
+
                     return HttpResponses.redirectToContextRoot();
                 } catch (UnclaimedIdentityException e) {
                     // TODO: initiate the sign up
@@ -96,5 +106,11 @@ public class OpenIdLoginService extends FederatedLoginService {
         public String getEmailAddress() {
             return id.email;
         }
+
+        public User signin() throws UnclaimedIdentityException {
+            User u = super.signin();
+
+        }
+
     }
 }
