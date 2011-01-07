@@ -1,7 +1,3 @@
-4. Finish the SSO security realm
-
-5. OpenID SSO realm needs to support user registration
-
 6. With SSO realm, it shall not be possible to associate/delete OpenIDs with the user
 
 7. Define an extension point to read group information. Implement the team extension support

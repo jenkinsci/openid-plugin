@@ -3,11 +3,14 @@ package hudson.plugins.openid;
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import hudson.Extension;
 import hudson.model.Descriptor;
+import hudson.model.User;
 import hudson.security.SecurityRealm;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
 import org.acegisecurity.BadCredentialsException;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.acegisecurity.providers.anonymous.AnonymousAuthenticationToken;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -52,14 +55,11 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
     private DiscoveryInformation getDiscoveredEndpoint() throws IOException, OpenIDException {
         if (discoveredEndpoint==null) {
-//            String idOrUrl = endpoint;
-            String idOrUrl = "http://kohsuke.myopenid.com/";
-
             // pretend that the endpoint URL is by itself an OpenID and find out an endpoint
             // if that fails, assume  that the endpoint URL is the real endpoint URL.
-            List r = new Discovery().discover(idOrUrl);
+            List r = new Discovery().discover(endpoint);
             if (r==null || r.isEmpty())
-                discoveredEndpoint = new DiscoveryInformation(new URL(idOrUrl));
+                discoveredEndpoint = new DiscoveryInformation(new URL(endpoint));
             else
                 discoveredEndpoint = (DiscoveryInformation)r.get(0);
         }
@@ -75,7 +75,11 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     /**
-     * Acegi has this notion that authentication is done 
+     * Acegi has this notion that first an {@link Authentication} object is created
+     * by collecting user information and then the act of authentication is done
+     * later (by {@link AuthenticationManager}) to verify it. But in case of OpenID,
+     * we create an {@link Authentication} only after we verified the user identity,
+     * so {@link AuthenticationManager} becomes no-op.
      */
     @Override
     public SecurityComponents createSecurityComponents() {
@@ -98,12 +102,23 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     public HttpResponse doCommenceLogin(@Header("Referer") final String referer) throws IOException, OpenIDException {
         return new OpenIdSession(manager,endpoint,"securityRealm/finishLogin") {
             @Override
-            protected HttpResponse onSuccess(Identity identity) throws IOException {
+            protected HttpResponse onSuccess(Identity id) throws IOException {
+                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                        id.nick!=null?id.nick:id.openId, "", id.teams.toArray(new GrantedAuthority[id.teams.size()]));
+                SecurityContextHolder.getContext().setAuthentication(token);
+
+                // update profile
+                User u = User.get(token.getName());
+                id.updateProfile(u);
+
                 return new HttpRedirect(referer);
             }
         }.doCommenceLogin();
     }
 
+    /**
+     * This is where the user comes back to at the end of the OpenID redirect ping-pong.
+     */
     public HttpResponse doFinishLogin(StaplerRequest request) throws IOException, OpenIDException {
         return OpenIdSession.getCurrent().doFinishLogin(request);
     }

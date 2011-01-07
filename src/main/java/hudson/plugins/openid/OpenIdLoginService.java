@@ -1,6 +1,7 @@
 package hudson.plugins.openid;
 
 import hudson.Extension;
+import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
@@ -48,13 +49,9 @@ public class OpenIdLoginService extends FederatedLoginService {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 try {
-                    User u = new IdentityImpl(identity).signin();
-
-                    // update the user profile by the externally given information
-                    if (identity.fullName!=null)
-                        u.setFullName(identity.fullName);
-                    if (identity.email!=null)
-                        u.addProperty(new Mailer.UserProperty(identity.email));
+                    IdentityImpl id = new IdentityImpl(identity);
+                    User u = id.signin();
+                    id.id.updateProfile(u);
 
                     return HttpResponses.redirectToContextRoot();
                 } catch (UnclaimedIdentityException e) {
