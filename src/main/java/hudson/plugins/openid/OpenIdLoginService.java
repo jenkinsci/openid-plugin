@@ -1,11 +1,9 @@
 package hudson.plugins.openid;
 
 import hudson.Extension;
-import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
-import hudson.tasks.Mailer;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
@@ -48,16 +46,11 @@ public class OpenIdLoginService extends FederatedLoginService {
         return new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
-                try {
-                    IdentityImpl id = new IdentityImpl(identity);
-                    User u = id.signin();
-                    id.id.updateProfile(u);
+                IdentityImpl id = new IdentityImpl(identity);
+                User u = id.signin();
+                id.id.updateProfile(u);
 
-                    return HttpResponses.redirectToContextRoot();
-                } catch (UnclaimedIdentityException e) {
-                    // TODO: initiate the sign up
-                    throw new UnsupportedOperationException();
-                }
+                return HttpResponses.redirectToContextRoot();
             }
         }.doCommenceLogin();
     }
