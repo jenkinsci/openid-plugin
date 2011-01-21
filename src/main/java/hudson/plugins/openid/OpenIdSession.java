@@ -4,6 +4,7 @@ import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
 import hudson.model.Failure;
 import hudson.model.Hudson;
+import org.acegisecurity.GrantedAuthorityImpl;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.Stapler;
@@ -69,7 +70,7 @@ public abstract class OpenIdSession {
 
         // request team information
         TeamExtensionRequest req = new TeamExtensionRequest();
-        req.setQueryMembership(Arrays.asList("foo","shopalong-devs")); // TODO: fill this with real roles
+        req.setQueryMembership(Hudson.getInstance().getAuthorizationStrategy().getGroups());
         authReq.addExtension(req);
 
         String url = authReq.getDestinationUrl(true);
