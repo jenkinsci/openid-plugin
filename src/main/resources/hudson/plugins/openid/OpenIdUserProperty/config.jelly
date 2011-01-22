@@ -33,7 +33,7 @@ THE SOFTWARE.
         </li>
       </j:forEach>
     </ul>
-    <input type="button" class='yui-button' value="${%Associate OpenID}"
+    <input type="button" class='yui-button' value="${%Associate Another OpenID}"
            onclick="window.location='${rootURL}/federatedLoginService/openid/associate'" />
     <script>
       Behaviour.register({
