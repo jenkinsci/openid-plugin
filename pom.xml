@@ -20,14 +20,15 @@
     </developer>
   </developers>
 
-  <!--
   <dependencies>
     <dependency>
       <groupId>com.cloudbees</groupId>
       <artifactId>openid4java-team-extension</artifactId>
       <version>1.0</version>
     </dependency>
-
+  </dependencies>
+  <!--
+  <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.main</groupId>
       <artifactId>jenkins-war</artifactId>
