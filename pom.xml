@@ -20,6 +20,7 @@
     </developer>
   </developers>
 
+  <!--
   <dependencies>
     <dependency>
       <groupId>com.cloudbees</groupId>
@@ -60,23 +61,10 @@
     </dependency>
   </dependencies>
 
-  <!--build>
-    <plugins>
-      <plugin>
-        <groupId>org.jvnet.hudson.tools</groupId>
-        <artifactId>maven-hpi-plugin</artifactId>
-        <version>1.60</version>
-        <extensions>true</extensions>
-        <configuration>
-          <showDeprecation>true</showDeprecation>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build-->
-
   <properties>
     <jenkins.version>1.396</jenkins.version>
   </properties>
+  -->
   
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/openid-plugin.git</connection>
