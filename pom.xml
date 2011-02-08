@@ -1,15 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.jvnet.hudson.plugins</groupId>
+    <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.395</version>
+    <version>1.396</version>
   </parent>
 
   <artifactId>openid</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/OpenID+Plugin</url>
+
+  <developers>
+    <developer>
+      <id>kohsuke</id>
+      <name>Kohsuke Kawaguchi</name>
+      <email>kkawaguchi@cloudbees.com</email>
+    </developer>
+  </developers>
 
   <dependencies>
     <dependency>
@@ -19,39 +28,39 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jvnet.hudson.main</groupId>
-      <artifactId>hudson-war</artifactId>
-      <version>${hudson.version}</version>
+      <groupId>org.jenkins-ci.main</groupId>
+      <artifactId>jenkins-war</artifactId>
+      <version>${jenkins.version}</version>
       <type>war</type>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.jvnet.hudson.main</groupId>
-      <artifactId>hudson-core</artifactId>
-      <version>${hudson.version}</version>
+      <groupId>org.jenkins-ci.main</groupId>
+      <artifactId>jenkins-core</artifactId>
+      <version>${jenkins.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.jvnet.hudson.main</groupId>
+      <groupId>org.jenkins-ci.main</groupId>
       <artifactId>maven-plugin</artifactId>
-      <version>${hudson.version}</version>
+      <version>${jenkins.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.jvnet.hudson.main</groupId>
+      <groupId>org.jenkins-ci.main</groupId>
       <artifactId>ui-samples-plugin</artifactId>
-      <version>${hudson.version}</version>
+      <version>${jenkins.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.jvnet.hudson.main</groupId>
-      <artifactId>hudson-test-harness</artifactId>
-      <version>${hudson.version}</version>
+      <groupId>org.jenkins-ci.main</groupId>
+      <artifactId>jenkins-test-harness</artifactId>
+      <version>${jenkins.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
-  <build>
+  <!--build>
     <plugins>
       <plugin>
         <groupId>org.jvnet.hudson.tools</groupId>
@@ -63,23 +72,21 @@
         </configuration>
       </plugin>
     </plugins>
-  </build>
+  </build-->
 
   <properties>
-    <hudson.version>1.395</hudson.version>
+    <jenkins.version>1.396</jenkins.version>
   </properties>
   
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/openid-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/openid-plugin.git</developerConnection>
+  </scm>
+
   <repositories>
-    <!-- temporary until 1.395 hits central -->
     <repository>
       <id>m.g.o-public</id>
       <url>http://maven.glassfish.org/content/groups/public/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
     </repository>
   </repositories>
 </project>
