@@ -83,7 +83,7 @@ public class OpenIdLoginService extends FederatedLoginService {
 
         @Override
         public String getNickname() {
-            return id.nick;
+            return id.getEffectiveNick();
         }
 
         @Override

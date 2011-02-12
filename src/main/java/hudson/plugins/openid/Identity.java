@@ -62,6 +62,15 @@ public class Identity {
         this.teams = createTeamMemberships(ter);
     }
 
+    /**
+     * Obtains the token suitable as the user ID.
+     */
+    public String getEffectiveNick() {
+        if (nick!=null)     return nick;
+        if (email!=null)    return email;
+        return openId;
+    }
+
     private List<GrantedAuthority> createTeamMemberships(TeamExtensionResponse ter) {
         Set<String> l = ter.getTeamMembership();
         List<GrantedAuthority> r = new ArrayList<GrantedAuthority>();
