@@ -90,13 +90,13 @@ public abstract class OpenIdSession {
         ParameterList responselist = new ParameterList(request.getParameterMap());
 
         // extract the receiving URL from the HTTP request
-        StringBuffer receivingURL = request.getRequestURL();
+        String receivingURL = Hudson.getInstance().getRootUrl()+finishUrl;
         String queryString = request.getQueryString();
         if (queryString != null && queryString.length() > 0)
-            receivingURL.append("?").append(request.getQueryString());
+            receivingURL+='?'+request.getQueryString();
 
         // verify the response
-        VerificationResult verification = manager.verify(receivingURL.toString(), responselist, endpoint);
+        VerificationResult verification = manager.verify(receivingURL, responselist, endpoint);
 
         // examine the verification result and extract the verified identifier
         Identifier verified = verification.getVerifiedId();
