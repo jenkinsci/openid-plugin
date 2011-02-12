@@ -9,6 +9,7 @@ import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
 import org.openid4java.OpenIDException;
 import org.openid4java.message.AuthSuccess;
+import org.openid4java.message.MessageException;
 import org.openid4java.message.ax.AxMessage;
 import org.openid4java.message.ax.FetchRequest;
 import org.openid4java.message.ax.FetchResponse;
@@ -42,16 +43,21 @@ public class Identity {
         String fullName = sr.getAttributeValue("fullname");
         String email = sr.getAttributeValue("email");
 
-        FetchResponse fr = (FetchResponse)authSuccess.getExtension(AxMessage.OPENID_NS_AX);
-        if (fr!=null) {
-            if (fullName==null) {
-                String first = fr.getAttributeValue("firstName");
-                String last = fr.getAttributeValue("lastName");
-                if (first!=null & last!=null)
-                    fullName = first+" "+last;
+        try {
+            FetchResponse fr = (FetchResponse)authSuccess.getExtension(AxMessage.OPENID_NS_AX);
+            if (fr!=null) {
+                if (fullName==null) {
+                    String first = fr.getAttributeValue("firstName");
+                    String last = fr.getAttributeValue("lastName");
+                    if (first!=null & last!=null)
+                        fullName = first+" "+last;
+                }
+                if (email==null)
+                    email = fr.getAttributeValue("email");
             }
-            if (email==null)
-                email = fr.getAttributeValue("email");
+        } catch (MessageException e) {
+            // if the response doesn't contain AX information, ignore. Maybe this is a bug in openid4java?
+            // "0x100: Invalid value for attribute exchange mode: null"
         }
         this.fullName = fullName;
         this.email = email;
