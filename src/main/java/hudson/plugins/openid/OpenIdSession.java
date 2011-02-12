@@ -57,7 +57,9 @@ public abstract class OpenIdSession {
         // request some user information
         // see http://code.google.com/apis/accounts/docs/OpenID.html
         FetchRequest fetch = FetchRequest.createFetchRequest();
-        fetch.addAttribute("email", "http://schema.openid.net/contact/email", false);
+        fetch.addAttribute("email", "http://schema.openid.net/contact/email", true);
+        fetch.addAttribute("firstName", "http://axschema.org/namePerson/first", true);
+        fetch.addAttribute("lastName", "http://axschema.org/namePerson/last", true);
         fetch.addAttribute("ff", "http://axschema.org/namePerson", false);
         fetch.addAttribute("img", "http://axschema.org/media/image/default/", false);
         authReq.addExtension(fetch);
