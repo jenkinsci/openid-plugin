@@ -27,6 +27,8 @@ import java.util.List;
 /**
  * Represents state for an OpenID authentication.
  *
+ * TODO should this implement Serializable since it is added to the attributes of the session?
+ *
  * @author Kohsuke Kawaguchi
  */
 public abstract class OpenIdSession {
@@ -92,6 +94,7 @@ public abstract class OpenIdSession {
         ParameterList responselist = new ParameterList(request.getParameterMap());
 
         // extract the receiving URL from the HTTP request
+        // Do not use request.getRequestURL(), since reverse proxies might not be correctly set up
         String receivingURL = Hudson.getInstance().getRootUrl()+finishUrl;
         String queryString = request.getQueryString();
         if (queryString != null && queryString.length() > 0)
@@ -103,7 +106,7 @@ public abstract class OpenIdSession {
         // examine the verification result and extract the verified identifier
         Identifier verified = verification.getVerifiedId();
         if (verified == null)
-            throw new Failure("Failed to login");
+            throw new Failure("Failed to login: " + verification.getStatusMsg());
 
         AuthSuccess authSuccess = (AuthSuccess) verification.getAuthResponse();
         return onSuccess(new Identity(authSuccess));

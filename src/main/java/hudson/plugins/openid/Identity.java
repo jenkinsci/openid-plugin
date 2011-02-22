@@ -2,6 +2,7 @@ package hudson.plugins.openid;
 
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionResponse;
+import com.google.common.collect.Lists;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import hudson.tasks.Mailer;
@@ -62,8 +63,6 @@ public class Identity {
         this.fullName = fullName;
         this.email = email;
 
-//        FetchResponse fr = (FetchResponse) authSuccess.getExtension(AxMessage.OPENID_NS_AX);
-
         TeamExtensionResponse ter = (TeamExtensionResponse) authSuccess.getExtension(TeamExtensionFactory.URI);
         this.teams = createTeamMemberships(ter);
     }
@@ -74,13 +73,15 @@ public class Identity {
     public String getEffectiveNick() {
         if (nick!=null)     return nick;
         if (email!=null)    return email;
+        // TODO fall back to fullname?
+        // TODO check if characters needs to be encoded
+        // if (fullName!=null) return fullName;
         return openId;
     }
 
     private List<GrantedAuthority> createTeamMemberships(TeamExtensionResponse ter) {
-        Set<String> l = ter.getTeamMembership();
-        List<GrantedAuthority> r = new ArrayList<GrantedAuthority>();
-        for (String s : l)
+        List<GrantedAuthority> r = Lists.newArrayList();
+        for (String s : ter.getTeamMembership())
             r.add(new GrantedAuthorityImpl(s));
         r.add(SecurityRealm.AUTHENTICATED_AUTHORITY);
         return r;

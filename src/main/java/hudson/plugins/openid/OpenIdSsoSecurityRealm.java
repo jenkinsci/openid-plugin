@@ -111,6 +111,8 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 // update the user profile.
                 User u = User.get(token.getName());
                 id.updateProfile(u);
+                OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
+                p.addIdentifier(id.openId);
 
                 return new HttpRedirect(referer);
             }
