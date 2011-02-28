@@ -105,14 +105,14 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             protected HttpResponse onSuccess(Identity id) throws IOException {
                 // logs this user in.
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        id.getEffectiveNick(), "", id.teams.toArray(new GrantedAuthority[id.teams.size()]));
+                        id.getEffectiveNick(), "", id.getGrantedAuthorities().toArray(new GrantedAuthority[id.getGrantedAuthorities().size()]));
                 SecurityContextHolder.getContext().setAuthentication(token);
 
                 // update the user profile.
                 User u = User.get(token.getName());
                 id.updateProfile(u);
                 OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
-                p.addIdentifier(id.openId);
+                p.addIdentifier(id.getOpenId());
 
                 return new HttpRedirect(referer);
             }

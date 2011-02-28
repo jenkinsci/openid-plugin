@@ -27,8 +27,6 @@ import java.util.List;
 /**
  * Represents state for an OpenID authentication.
  *
- * TODO should this implement Serializable since it is added to the attributes of the session?
- *
  * @author Kohsuke Kawaguchi
  */
 public abstract class OpenIdSession {
@@ -56,26 +54,7 @@ public abstract class OpenIdSession {
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
         final AuthRequest authReq = manager.authenticate(endpoint, Hudson.getInstance().getRootUrl()+ finishUrl);
 
-        // request some user information
-        // see http://code.google.com/apis/accounts/docs/OpenID.html
-        FetchRequest fetch = FetchRequest.createFetchRequest();
-        fetch.addAttribute("email", "http://schema.openid.net/contact/email", true);
-        fetch.addAttribute("firstName", "http://axschema.org/namePerson/first", true);
-        fetch.addAttribute("lastName", "http://axschema.org/namePerson/last", true);
-        fetch.addAttribute("ff", "http://axschema.org/namePerson", false);
-        fetch.addAttribute("img", "http://axschema.org/media/image/default/", false);
-        authReq.addExtension(fetch);
-
-        SRegRequest sregReq = SRegRequest.createFetchRequest();
-        sregReq.addAttribute("fullname", true);
-        sregReq.addAttribute("nickname", true);
-        sregReq.addAttribute("email", true);
-        authReq.addExtension(sregReq);
-
-        // request team information
-        TeamExtensionRequest req = new TeamExtensionRequest();
-        req.setQueryMembership(Hudson.getInstance().getAuthorizationStrategy().getGroups());
-        authReq.addExtension(req);
+        OpenIdExtension.extendRequest(authReq);
 
         String url = authReq.getDestinationUrl(true);
 
@@ -89,18 +68,18 @@ public abstract class OpenIdSession {
      * When the identity provider is done with its thing, the user comes back here.
      */
     public HttpResponse doFinishLogin(StaplerRequest request) throws IOException, OpenIDException {
-        // extract the parameters from the authentication response
-        // (which comes in as a HTTP request from the OpenID provider)
+        // extract the parameters from the authentication process
+        // (which comes in as a HTTP extend from the OpenID provider)
         ParameterList responselist = new ParameterList(request.getParameterMap());
 
-        // extract the receiving URL from the HTTP request
-        // Do not use request.getRequestURL(), since reverse proxies might not be correctly set up
+        // extract the receiving URL from the HTTP extend
+        // Do not use extend.getRequestURL(), since reverse proxies might not be correctly set up
         String receivingURL = Hudson.getInstance().getRootUrl()+finishUrl;
         String queryString = request.getQueryString();
         if (queryString != null && queryString.length() > 0)
             receivingURL+='?'+request.getQueryString();
 
-        // verify the response
+        // verify the process
         VerificationResult verification = manager.verify(receivingURL, responselist, endpoint);
 
         // examine the verification result and extract the verified identifier
@@ -115,7 +94,7 @@ public abstract class OpenIdSession {
     protected abstract HttpResponse onSuccess(Identity identity) throws IOException;
 
     /**
-     * Gets the {@link OpenIdSession} associated with HTTP session in the current request.
+     * Gets the {@link OpenIdSession} associated with HTTP session in the current extend.
      */
     public static OpenIdSession getCurrent() {
         return (OpenIdSession) Stapler.getCurrentRequest().getSession().getAttribute(SESSION_NAME);

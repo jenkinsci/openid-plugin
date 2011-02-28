@@ -107,7 +107,7 @@ public class OpenIdTestService {
         final String realm = getRealm(requestp);
 
         if ("associate".equals(mode)) {
-            // --- process an association request ---
+            // --- process an association extend ---
             return new MessageResponse(manager.associationResponse(requestp));
         } else if ("checkid_setup".equals(mode) || "checkid_immediate".equals(mode)) {
 
@@ -137,7 +137,7 @@ public class OpenIdTestService {
         } else if ("check_authentication".equals(mode)) {
             return new MessageResponse(manager.verify(requestp));
         } else {
-            throw new OperationFailure("Unknown request: "+mode);
+            throw new OperationFailure("Unknown extend: "+mode);
         }
     }
 

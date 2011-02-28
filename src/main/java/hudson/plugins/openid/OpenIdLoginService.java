@@ -78,7 +78,7 @@ public class OpenIdLoginService extends FederatedLoginService {
 
         @Override
         public String getIdentifier() {
-            return id.openId;
+            return id.getOpenId();
         }
 
         @Override
@@ -88,12 +88,12 @@ public class OpenIdLoginService extends FederatedLoginService {
 
         @Override
         public String getFullName() {
-            return id.fullName;
+            return id.getFullName();
         }
 
         @Override
         public String getEmailAddress() {
-            return id.email;
+            return id.getEmail();
         }
 
         @Override

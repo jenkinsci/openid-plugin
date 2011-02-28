@@ -5,42 +5,22 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import hudson.model.User;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.context.SecurityContextHolder;
+import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static hudson.plugins.openid.OpenIdTestService.*;
 
 /**
  * @author Paul Sandoz
  */
-public class OpenIdSsoSecurityRealmTest extends HudsonTestCase {
-    public OpenIdTestService openid;
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        // Set to null to avoid errors on association POST requests
-        // set from openid4java
-        hudson.setCrumbIssuer(null);
-    }
-
-    String getServiceUrl() throws IOException {
-        return getURL().toExternalForm() + getUrlName() + "/openid/";
-    }
-
-    Map<OpenIdTestService.IdProperty,String> getProps() {
-        Map<OpenIdTestService.IdProperty,String> props = Maps.newEnumMap(IdProperty.class);
-        props.put(IdProperty.email, "alice@Net");
-        props.put(IdProperty.nick, "aliceW");
-        props.put(IdProperty.fullName, "Alice Wonderland");
-        props.put(IdProperty.firstName, "alice");
-        props.put(IdProperty.lastName, "wonderland");
-        props.put(IdProperty.derivedFullName, "alice wonderland");
-        return props;
-    }
+public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 
     void _testLogin(String userName) throws Exception {
         WebClient wc = new WebClient();
@@ -55,15 +35,15 @@ public class OpenIdSsoSecurityRealmTest extends HudsonTestCase {
 
         assertNotNull(top.getAnchorByHref("/user/" + userName));
 
-        // TODO the following does not get the expected authemtication token implementation
-        // it should be an instance of UsernamePasswordAuthenticationToken
-        // and from that can verify the granted authorities given by the team extension roles
-//        Authentication a = executeOnServer(new Callable<Authentication>() {
-//            public Authentication call() throws Exception {
-//                return SecurityContextHolder.getContext().getAuthentication();
-//            }
-//        });
-//        assertTrue(a instanceof UsernamePasswordAuthenticationToken);
+        Authentication a = wc.executeOnServer(new Callable<Authentication>() {
+            public Authentication call() throws Exception {
+                return SecurityContextHolder.getContext().getAuthentication();
+            }
+        });
+        assertTrue(a instanceof UsernamePasswordAuthenticationToken);
+        for (String team : openid.teams) {
+            assertTrue(isTeamAGrantedAuthority(a.getAuthorities(), team));
+        }
 
         User u = User.get(userName);
         assertNotNull(u);
@@ -72,6 +52,14 @@ public class OpenIdSsoSecurityRealmTest extends HudsonTestCase {
 
         assertEquals(1, p.getIdentifiers().size());
         assertEquals(openid.getUserIdentity(), p.getIdentifiers().iterator().next());
+    }
+
+    private boolean isTeamAGrantedAuthority(GrantedAuthority[] gas, String team) {
+        for (GrantedAuthority ga : gas) {
+            if (team.equals(ga.getAuthority())) return true;
+        }
+
+        return false;
     }
 
     public void testLoginWithAllExtensions() throws Exception {
@@ -106,19 +94,18 @@ public class OpenIdSsoSecurityRealmTest extends HudsonTestCase {
         _testLogin(openid.props.get(IdProperty.email));
     }
 
-    // TODO uncomment if fall back to fullname is supported
-//    public void testLoginWithWithoutAXExtensionAndNickAndEmail() throws Exception {
-//        Map<OpenIdTestService.IdProperty,String> props = getProps();
-//        props.remove(OpenIdTestService.IdProperty.nick);
-//        props.remove(OpenIdTestService.IdProperty.email);
-//        openid = new OpenIdTestService(
-//                getServiceUrl(),
-//                props,
-//                Sets.newHashSet("foo", "bar"),
-//                Lists.newArrayList(OpenIdTestService.SREG_EXTENSION, OpenIdTestService.TEAM_EXTENSION));
-//
-//        _testLogin(openid.props.get(IdProperty.firstName));
-//    }
+    public void testLoginWithWithoutAXExtensionAndNickAndEmail() throws Exception {
+        Map<OpenIdTestService.IdProperty,String> props = getProps();
+        props.remove(OpenIdTestService.IdProperty.nick);
+        props.remove(OpenIdTestService.IdProperty.email);
+        openid = new OpenIdTestService(
+                getServiceUrl(),
+                props,
+                Sets.newHashSet("foo", "bar"),
+                Lists.newArrayList(OpenIdTestService.SREG_EXTENSION, OpenIdTestService.TEAM_EXTENSION));
+
+        _testLogin(openid.getUserIdentity());
+    }
 
     public void testLoginWithWithoutSRegExtension() throws Exception {
         openid = new OpenIdTestService(
@@ -130,16 +117,16 @@ public class OpenIdSsoSecurityRealmTest extends HudsonTestCase {
         _testLogin(openid.props.get(IdProperty.email));
     }
 
-    // TODO uncomment if fall back to fullname is supported
-//    public void testLoginWithWithoutSRegExtensionAndEmailAddress() throws Exception {
-//        Map<OpenIdTestService.IdProperty,String> props = getProps();
-//        props.remove(OpenIdTestService.IdProperty.email);
-//        openid = new OpenIdTestService(
-//                getServiceUrl(),
-//                props,
-//                Sets.newHashSet("foo", "bar"),
-//                Lists.newArrayList(OpenIdTestService.AX_EXTENSION, OpenIdTestService.TEAM_EXTENSION));
-//
-//        _testLogin(openid.props.get(IdProperty.derivedFullName));
-//    }
+
+    public void testLoginWithWithoutSRegExtensionAndEmailAddress() throws Exception {
+        Map<OpenIdTestService.IdProperty,String> props = getProps();
+        props.remove(OpenIdTestService.IdProperty.email);
+        openid = new OpenIdTestService(
+                getServiceUrl(),
+                props,
+                Sets.newHashSet("foo", "bar"),
+                Lists.newArrayList(OpenIdTestService.AX_EXTENSION, OpenIdTestService.TEAM_EXTENSION));
+
+        _testLogin(openid.getUserIdentity());
+    }
 }

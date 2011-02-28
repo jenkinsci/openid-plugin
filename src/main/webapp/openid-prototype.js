@@ -127,7 +127,7 @@ var openid = {
 			alert(openid.demo_text + "\r\n" + document.getElementById(openid.input_id).value);
 			return false;
 		}
-		if (url.indexOf("javascript:") == 0) {
+		if (url && url.indexOf("javascript:") == 0) {
 			url = url.substr("javascript:".length);
 			eval(url);
 			return false;
