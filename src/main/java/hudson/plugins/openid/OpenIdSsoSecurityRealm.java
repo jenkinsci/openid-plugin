@@ -42,6 +42,7 @@ import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
+import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
@@ -58,7 +59,7 @@ import java.util.List;
  * @author Kohsuke Kawaguchi
  */
 public class OpenIdSsoSecurityRealm extends SecurityRealm {
-    private final ConsumerManager manager;
+    private /*almost final*/ transient volatile ConsumerManager manager;
 //    private final DiscoveryInformation endpoint;
 
     // for example, https://login.launchpad.net/+openid
@@ -69,11 +70,21 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
     @DataBoundConstructor
     public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
-        manager = new ConsumerManager();
-        manager.setAssociations(new InMemoryConsumerAssociationStore());
-        manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
         this.endpoint = endpoint;
         getDiscoveredEndpoint();
+    }
+
+    private ConsumerManager getManager() throws ConsumerException {
+        if (manager!=null)  return manager;
+
+        synchronized (this) {
+            if (manager==null) {
+                manager = new ConsumerManager();
+                manager.setAssociations(new InMemoryConsumerAssociationStore());
+                manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
+            }
+        }
+        return manager;
     }
 
     private DiscoveryInformation getDiscoveredEndpoint() throws IOException, OpenIDException {
@@ -123,7 +134,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      * The login process starts from here.
      */
     public HttpResponse doCommenceLogin(@Header("Referer") final String referer) throws IOException, OpenIDException {
-        return new OpenIdSession(manager,endpoint,"securityRealm/finishLogin") {
+        return new OpenIdSession(getManager(),endpoint,"securityRealm/finishLogin") {
             @Override
             protected HttpResponse onSuccess(Identity id) throws IOException {
                 // logs this user in.
