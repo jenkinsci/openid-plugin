@@ -24,6 +24,7 @@
 package hudson.plugins.openid;
 
 import hudson.Extension;
+import hudson.model.Failure;
 import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
@@ -79,7 +80,10 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     public HttpResponse doFinish(StaplerRequest request) throws IOException, OpenIDException {
-        return OpenIdSession.getCurrent().doFinishLogin(request);
+        OpenIdSession session = OpenIdSession.getCurrent();
+        if (session==null)
+            throw new Failure(Messages.OpenIdLoginService_SessionNotFound());
+        return session.doFinishLogin(request);
     }
 
     public HttpResponse doStartAssociate(@QueryParameter String openid) throws OpenIDException, IOException {
