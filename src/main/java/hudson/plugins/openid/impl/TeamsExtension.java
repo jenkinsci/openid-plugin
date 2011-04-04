@@ -49,6 +49,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Use the OpenID team extension (https://dev.launchpad.net/OpenIDTeams) to obtain membership.
+ *
  * @author Paul Sandoz
  */
 @Extension
