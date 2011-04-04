@@ -42,7 +42,11 @@ import org.openid4java.message.ax.FetchResponse;
 import org.openid4java.message.sreg.SRegMessage;
 import org.openid4java.message.sreg.SRegResponse;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Paul Sandoz
@@ -52,8 +56,13 @@ public class TeamsExtension extends OpenIdExtension {
     @Override
     public void extend(AuthRequest authRequest) throws MessageException {
         TeamExtensionRequest req = new TeamExtensionRequest();
-        req.setQueryMembership(Hudson.getInstance().getAuthorizationStrategy().getGroups());
+        Collection<String> groups = Hudson.getInstance().getAuthorizationStrategy().getGroups();
+        req.setQueryMembership(groups);
         authRequest.addExtension(req);
+
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Checking memberships of "+new ArrayList<String>(groups)+" with OpenID");
+        }
     }
 
     @Override
@@ -63,9 +72,15 @@ public class TeamsExtension extends OpenIdExtension {
         for (String s : ter.getTeamMembership())
             r.add(new GrantedAuthorityImpl(s));
         r.add(SecurityRealm.AUTHENTICATED_AUTHORITY);
+
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine("Adding "+ter.getTeamMembership()+" as authorities from team extension to "+id.getOpenId());
+        }
     }
 
     static {
         TeamExtensionFactory.install();
     }
+
+    private static final Logger LOGGER = Logger.getLogger(TeamsExtension.class.getName());
 }
