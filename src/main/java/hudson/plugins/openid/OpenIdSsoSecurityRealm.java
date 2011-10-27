@@ -120,8 +120,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         return new SecurityComponents(
             new AuthenticationManager() {
                 public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-                    if (authentication instanceof AnonymousAuthenticationToken
-                    ||  authentication instanceof UsernamePasswordAuthenticationToken)
+                    if (authentication instanceof AnonymousAuthenticationToken)
                         return authentication;
                     throw new BadCredentialsException("Unexpected authentication type: "+authentication);
                 }
