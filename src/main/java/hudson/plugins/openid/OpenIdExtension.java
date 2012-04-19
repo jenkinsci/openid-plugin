@@ -30,6 +30,7 @@ import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.MessageException;
 import org.openid4java.message.MessageExtension;
+import org.openid4java.message.ax.FetchRequest;
 
 /**
  * An OpenID extension for extending an authentication request and processing an authentication success.
@@ -62,6 +63,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      */
     public abstract void process(AuthSuccess authSuccess, Identity id) throws MessageException;
 
+    public void extendFetch(FetchRequest request) throws MessageException{}
     /**
      * Obtain an extended response message from an {@link AuthSuccess} instance given the class
      * and URI type of the response message.
@@ -94,9 +96,12 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws MessageException if there is a message error extending the request
      */
     public static void extendRequest(AuthRequest authRequest) throws MessageException {
-        for (OpenIdExtension e : all()) {
+        FetchRequest request = FetchRequest.createFetchRequest();
+    	for (OpenIdExtension e : all()) {
             e.extend(authRequest);
+            e.extendFetch(request);
         }
+    	authRequest.addExtension(request);
     }
 
     /**
