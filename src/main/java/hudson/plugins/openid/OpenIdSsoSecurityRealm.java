@@ -42,16 +42,28 @@ import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
+import org.openid4java.association.AssociationException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
+import org.openid4java.consumer.VerificationResult;
 import org.openid4java.discovery.Discovery;
+import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
+import org.openid4java.discovery.UrlIdentifier;
+import org.openid4java.message.AuthFailure;
+import org.openid4java.message.AuthImmediateFailure;
+import org.openid4java.message.AuthSuccess;
+import org.openid4java.message.MessageException;
+import org.openid4java.message.ParameterList;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * SSO based on OpenID by fixing a provider.
@@ -79,11 +91,16 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
         synchronized (this) {
             if (manager==null) {
-                manager = new ConsumerManager();
+                manager =createManager();
                 manager.setAssociations(new InMemoryConsumerAssociationStore());
                 manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
             }
         }
+        return manager;
+    }
+
+    protected ConsumerManager createManager() throws ConsumerException {
+        ConsumerManager manager = new ConsumerManager();
         return manager;
     }
 
@@ -160,7 +177,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     @Extension
-    public static final class DescriptorImpl extends Descriptor<SecurityRealm> {
+    public static class DescriptorImpl extends Descriptor<SecurityRealm> {
         public String getDisplayName() {
             return "OpenID SSO";
         }
