@@ -2,6 +2,7 @@ package hudson.plugins.openid;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
+import hudson.model.Hudson;
 import hudson.security.SecurityRealm;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.openid4java.OpenIDException;
@@ -12,6 +13,8 @@ import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.discovery.UrlIdentifier;
+import org.openid4java.util.HttpClientFactory;
+import org.openid4java.util.ProxyProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +37,15 @@ public class GoogleAppSsoSecurityRealm extends OpenIdSsoSecurityRealm {
 
     @Override
     protected ConsumerManager createManager() throws ConsumerException {
+        final Hudson instance = Hudson.getInstance();
+        if (instance.proxy != null) {
+            ProxyProperties props = new ProxyProperties();
+            props.setProxyHostName(instance.proxy.name);
+            props.setProxyPort(instance.proxy.port);
+            props.setUserName(instance.proxy.getUserName());
+            props.setProxyHostName(instance.proxy.getPassword());
+            HttpClientFactory.setProxyProperties(props);
+        }
         ConsumerManager m = new ConsumerManager();
         m.setDiscovery(new Discovery() {
             /**

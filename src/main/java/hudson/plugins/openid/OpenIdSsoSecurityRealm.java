@@ -26,6 +26,7 @@ package hudson.plugins.openid;
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import hudson.Extension;
 import hudson.model.Descriptor;
+import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import org.acegisecurity.Authentication;
@@ -57,6 +58,8 @@ import org.openid4java.message.AuthImmediateFailure;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.MessageException;
 import org.openid4java.message.ParameterList;
+import org.openid4java.util.HttpClientFactory;
+import org.openid4java.util.ProxyProperties;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -87,7 +90,9 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     private ConsumerManager getManager() throws ConsumerException {
-        if (manager!=null)  return manager;
+        if (manager != null) {
+            return manager;
+        }
 
         synchronized (this) {
             if (manager==null) {
@@ -100,6 +105,15 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     protected ConsumerManager createManager() throws ConsumerException {
+        final Hudson instance = Hudson.getInstance();
+        if (instance.proxy != null) {
+            ProxyProperties props = new ProxyProperties();
+            props.setProxyHostName(instance.proxy.name);
+            props.setProxyPort(instance.proxy.port);
+            props.setUserName(instance.proxy.getUserName());
+            props.setProxyHostName(instance.proxy.getPassword());
+            HttpClientFactory.setProxyProperties(props);
+        }
         ConsumerManager manager = new ConsumerManager();
         return manager;
     }
@@ -109,10 +123,11 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             // pretend that the endpoint URL is by itself an OpenID and find out an endpoint
             // if that fails, assume  that the endpoint URL is the real endpoint URL.
             List r = new Discovery().discover(endpoint);
-            if (r==null || r.isEmpty())
+            if (r == null || r.isEmpty()) {
                 discoveredEndpoint = new DiscoveryInformation(new URL(endpoint));
-            else
-                discoveredEndpoint = (DiscoveryInformation)r.get(0);
+            } else {
+                discoveredEndpoint = (DiscoveryInformation) r.get(0);
+            }
         }
         return discoveredEndpoint;
     }
@@ -137,8 +152,9 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         return new SecurityComponents(
             new AuthenticationManager() {
                 public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-                    if (authentication instanceof AnonymousAuthenticationToken)
+                    if (authentication instanceof AnonymousAuthenticationToken) {
                         return authentication;
+                    }
                     throw new BadCredentialsException("Unexpected authentication type: "+authentication);
                 }
             }
