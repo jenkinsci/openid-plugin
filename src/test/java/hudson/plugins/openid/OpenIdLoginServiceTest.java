@@ -25,22 +25,12 @@ package hudson.plugins.openid;
 
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.octo.captcha.service.CaptchaServiceException;
-import com.octo.captcha.service.image.DefaultManageableImageCaptchaService;
 import hudson.model.User;
 import hudson.security.HudsonPrivateSecurityRealm;
-import hudson.security.SecurityRealm;
-import org.jvnet.hudson.test.HudsonTestCase;
-import org.jvnet.hudson.test.recipes.WithPlugin;
-
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import static hudson.plugins.openid.OpenIdTestService.*;
 
@@ -76,13 +66,6 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
     }
 
     public void testLogInWithOpenIDAndSignUp() throws Exception {
-        // Override validation of Captcha service
-        SecurityRealm.CaptchaService.INSTANCE = new DefaultManageableImageCaptchaService() {
-            public Boolean validateResponseForID(String ID, Object response) throws CaptchaServiceException {
-                return true;
-            }
-        };
-
         openid = new OpenIdTestService(
                 getServiceUrl(),
                 getProps(),
