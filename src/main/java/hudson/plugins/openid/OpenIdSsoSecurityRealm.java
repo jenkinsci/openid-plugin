@@ -30,6 +30,7 @@ import hudson.model.Failure;
 import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
+import hudson.util.FormValidation;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
@@ -42,6 +43,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
@@ -49,6 +51,7 @@ import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
 import org.openid4java.discovery.Discovery;
+import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.util.HttpClientFactory;
 import org.openid4java.util.ProxyProperties;
@@ -188,6 +191,15 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     public static class DescriptorImpl extends Descriptor<SecurityRealm> {
         public String getDisplayName() {
             return "OpenID SSO";
+        }
+
+        public FormValidation doValidate(@QueryParameter String endpoint) {
+            try {
+                new Discovery().discover(endpoint);
+                return FormValidation.ok("OK");
+            } catch (DiscoveryException e) {
+                return FormValidation.error(e,"Invalid provider URL: "+endpoint);
+            }
         }
 
         static {
