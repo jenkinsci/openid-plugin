@@ -31,6 +31,10 @@ import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import hudson.util.FormValidation;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
@@ -44,6 +48,7 @@ import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
@@ -154,10 +159,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         );
     }
 
-    /**
-     * The login process starts from here.
-     */
-    public HttpResponse doCommenceLogin(@Header("Referer") final String referer) throws IOException, OpenIDException {
+    private OpenIdSession createSession(final String referer) throws OpenIDException {
         return new OpenIdSession(getManager(),endpoint,"securityRealm/finishLogin") {
             @Override
             protected HttpResponse onSuccess(Identity id) throws IOException {
@@ -175,7 +177,21 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
                 return new HttpRedirect(referer);
             }
-        }.doCommenceLogin();
+        };
+    }
+     
+    /**
+     * The login process starts from here.
+     */
+    public HttpResponse doCommenceLogin(@Header("Referer") final String referer) throws IOException, OpenIDException {
+        return createSession(referer).doCommenceLogin();
+    }
+    
+    /**
+     * Start the login process from outside of Stapler 
+     */
+    public void commenceLogin(HttpServletRequest request, HttpServletResponse resp, String referer) throws IOException, OpenIDException {
+        resp.sendRedirect(createSession(referer).commenceLogin(request));
     }
 
     /**

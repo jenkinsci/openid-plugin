@@ -47,6 +47,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Represents state for an OpenID authentication.
  *
@@ -72,19 +74,26 @@ public abstract class OpenIdSession {
     }
 
     /**
-     * Starts the login session.
+     * Starts the login session from within an ongoing Stapler request.
      */
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
+        return new HttpRedirect(commenceLogin(Stapler.getCurrentRequest()));
+    }
+    
+    /**
+     * Starts the login session with a plain old Servlet Request
+     * @param req
+     */
+    public String commenceLogin(HttpServletRequest req) throws IOException, OpenIDException {
+        String url = buildOpenIdUrl();
+        req.getSession().setAttribute(SESSION_NAME,this);
+        return url;
+    }
+        
+    private String buildOpenIdUrl() throws IOException, OpenIDException {
         final AuthRequest authReq = manager.authenticate(endpoint, Hudson.getInstance().getRootUrl()+ finishUrl);
-
         OpenIdExtension.extendRequest(authReq);
-
-        String url = authReq.getDestinationUrl(true);
-
-        // remember this in the session
-        Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,this);
-
-        return new HttpRedirect(url);
+        return authReq.getDestinationUrl(true);
     }
 
     /**
