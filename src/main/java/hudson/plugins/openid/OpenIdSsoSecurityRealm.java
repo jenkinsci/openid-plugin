@@ -44,6 +44,7 @@ import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
@@ -59,6 +60,8 @@ import org.openid4java.util.ProxyProperties;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+
+import jenkins.model.Jenkins;
 
 /**
  * SSO based on OpenID by fixing a provider.
@@ -157,7 +160,17 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     /**
      * The login process starts from here.
      */
-    public HttpResponse doCommenceLogin(@Header("Referer") final String referer) throws IOException, OpenIDException {
+    public HttpResponse doCommenceLogin(@QueryParameter String from) throws IOException, OpenIDException {
+        if (from == null) {
+            if (Stapler.getCurrentRequest().getHeader("Referer") != null) {
+                from = Stapler.getCurrentRequest().getHeader("Referer");
+            } else {
+                from = Jenkins.getInstance().getRootUrl();
+            }
+        }
+        
+        final String referer = from;
+        
         return new OpenIdSession(getManager(),endpoint,"securityRealm/finishLogin") {
             @Override
             protected HttpResponse onSuccess(Identity id) throws IOException {
