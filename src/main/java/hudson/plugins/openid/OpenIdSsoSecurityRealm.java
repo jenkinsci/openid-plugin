@@ -161,7 +161,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      * The login process starts from here.
      */
     public HttpResponse doCommenceLogin(@QueryParameter String from) throws IOException, OpenIDException {
-        if (from == null) {
+        if (from == null || !from.startsWith("/")) {
             if (Stapler.getCurrentRequest().getHeader("Referer") != null) {
                 from = Stapler.getCurrentRequest().getHeader("Referer");
             } else {
