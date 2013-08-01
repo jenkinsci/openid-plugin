@@ -31,7 +31,7 @@ public class GoogleAppSsoSecurityRealm extends OpenIdSsoSecurityRealm {
 
     @DataBoundConstructor
     public GoogleAppSsoSecurityRealm(String domain) throws IOException, OpenIDException {
-        super("https://www.google.com/accounts/o8/site-xrds?hd="+domain);
+        super("https://www.google.com/accounts/o8/site-xrds?hd="+domain, false);
         this.domain = domain;
     }
 

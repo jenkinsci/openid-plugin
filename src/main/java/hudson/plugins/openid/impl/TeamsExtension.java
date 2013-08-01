@@ -56,27 +56,31 @@ import java.util.logging.Logger;
 @Extension
 public class TeamsExtension extends OpenIdExtension {
     @Override
-    public void extend(AuthRequest authRequest) throws MessageException {
-        TeamExtensionRequest req = new TeamExtensionRequest();
-        Collection<String> groups = Hudson.getInstance().getAuthorizationStrategy().getGroups();
-        req.setQueryMembership(groups);
-        authRequest.addExtension(req);
-
-        if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Checking memberships of "+new ArrayList<String>(groups)+" with OpenID");
-        }
+    public void extend(AuthRequest authRequest, boolean supportsOpenIDTeams) throws MessageException {
+	if (supportsOpenIDTeams) {
+            TeamExtensionRequest req = new TeamExtensionRequest();
+            Collection<String> groups = Hudson.getInstance().getAuthorizationStrategy().getGroups();
+            req.setQueryMembership(groups);
+            authRequest.addExtension(req);
+    
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.fine("Checking memberships of "+new ArrayList<String>(groups)+" with OpenID");
+            }
+	}
     }
 
     @Override
     public void process(AuthSuccess authSuccess, Identity id) throws MessageException {
         TeamExtensionResponse ter = getMessageAs(TeamExtensionResponse.class,  authSuccess, TeamExtensionFactory.URI);
-        List<GrantedAuthority> r = id.getGrantedAuthorities();
-        for (String s : ter.getTeamMembership())
-            r.add(new GrantedAuthorityImpl(s));
-        r.add(SecurityRealm.AUTHENTICATED_AUTHORITY);
-
-        if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Adding "+ter.getTeamMembership()+" as authorities from team extension to "+id.getOpenId());
+        if (ter != null) {
+            List<GrantedAuthority> r = id.getGrantedAuthorities();
+            for (String s : ter.getTeamMembership())
+                r.add(new GrantedAuthorityImpl(s));
+            r.add(SecurityRealm.AUTHENTICATED_AUTHORITY);
+    
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.fine("Adding "+ter.getTeamMembership()+" as authorities from team extension to "+id.getOpenId());
+            }
         }
     }
 

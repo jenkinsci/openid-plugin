@@ -52,7 +52,7 @@ public class UserInfoExtension extends OpenIdExtension {
 	}
 	
     @Override
-    public void extend(AuthRequest authRequest) throws MessageException {
+    public void extend(AuthRequest authRequest, boolean supportsOpenIDTeams) throws MessageException {
         // extend some user information
         // see http://code.google.com/apis/accounts/docs/OpenID.html
         SRegRequest sregReq = SRegRequest.createFetchRequest();

@@ -3,5 +3,8 @@
   <f:entry title="${%Provider URL}" field="endpoint">
     <f:textbox/>
   </f:entry>
+  <f:entry title="${%Supports OpenID Teams extension}" field="supportsOpenIdTeams">
+  	<f:checkbox/>
+  </f:entry>
   <f:validateButton method="validate" title="${%Validate URL}" with="endpoint"/>
 </j:jelly>

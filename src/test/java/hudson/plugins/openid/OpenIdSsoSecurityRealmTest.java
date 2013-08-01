@@ -48,7 +48,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     void _testLogin(String userName) throws Exception {
         WebClient wc = new WebClient();
 
-        OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
+        OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url, true);
         hudson.setSecurityRealm(realm);
 
         HtmlPage top = wc.goTo("");

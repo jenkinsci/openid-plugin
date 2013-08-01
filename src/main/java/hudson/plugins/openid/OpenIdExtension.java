@@ -26,6 +26,8 @@ package hudson.plugins.openid;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Hudson;
+import hudson.security.SecurityRealm;
+
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.MessageException;
@@ -47,9 +49,10 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * {@link AuthRequest#addExtension(org.openid4java.message.MessageExtension)}.
      *
      * @param authRequest the authentication request
+     * @param supportsOpenIdTeams  Whether the realm itself supports OpenID teams
      * @throws MessageException if there is a message error extending the request
      */
-    public abstract void extend(AuthRequest authRequest) throws MessageException;
+    public abstract void extend(AuthRequest authRequest, boolean supportsOpenIdTeams) throws MessageException;
 
     /**
      * Process the authentication success.
@@ -97,8 +100,12 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      */
     public static void extendRequest(AuthRequest authRequest) throws MessageException {
         FetchRequest request = FetchRequest.createFetchRequest();
-    	for (OpenIdExtension e : all()) {
-            e.extend(authRequest);
+        SecurityRealm realm = Hudson.getInstance().getSecurityRealm();
+        boolean supportsOpenIdTeams = (realm instanceof OpenIdSsoSecurityRealm) ? ((OpenIdSsoSecurityRealm)realm).supportsOpenIdTeams : false;
+
+        for (OpenIdExtension e : all()) {
+           
+	    e.extend(authRequest, supportsOpenIdTeams);
             e.extendFetch(request);
         }
     	authRequest.addExtension(request);

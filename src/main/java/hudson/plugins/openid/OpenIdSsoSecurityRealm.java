@@ -75,12 +75,14 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     // for example, https://login.launchpad.net/+openid
     // 
     public final String endpoint;
+    public final boolean supportsOpenIdTeams;
 
     private transient volatile DiscoveryInformation discoveredEndpoint;
 
     @DataBoundConstructor
-    public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
+    public OpenIdSsoSecurityRealm(String endpoint, boolean supportsOpenIdTeams) throws IOException, OpenIDException {
         this.endpoint = endpoint;
+        this.supportsOpenIdTeams = supportsOpenIdTeams;
         getDiscoveredEndpoint();
     }
 
