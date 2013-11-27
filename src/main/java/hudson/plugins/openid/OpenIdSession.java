@@ -72,7 +72,7 @@ public abstract class OpenIdSession {
             List discoveries = manager.discover(openid);
             endpoint = manager.associate(discoveries);
         } catch (DiscoveryException e) {
-            throw new DiscoveryException("Failed to discover OpenID: "+openid,e);
+            throw new DiscoveryException("Failed to discover OpenID: "+openid,e.getErrorCode(),e);
         }
     }
 
