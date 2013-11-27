@@ -66,7 +66,11 @@ public class OpenIdLoginService extends FederatedLoginService {
     /**
      * Commence a login.
      */
-    public HttpResponse doStartLogin(@QueryParameter String openid, @QueryParameter final String from) throws OpenIDException, IOException {
+    public HttpResponse doStartLogin(@QueryParameter String openid, @QueryParameter String openid_identifier, @QueryParameter final String from) throws OpenIDException, IOException {
+        // if the script doesn't work, it'll submit 'openid_identifier'
+        // <INPUT type=text NAME=openid/> is programmatically constructed
+        if (openid==null)       openid = openid_identifier;
+
         return new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
