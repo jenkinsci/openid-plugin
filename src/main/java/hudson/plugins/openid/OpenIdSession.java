@@ -35,6 +35,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
+import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthRequest;
@@ -67,8 +68,12 @@ public abstract class OpenIdSession {
         this.manager = manager;
         this.finishUrl = finishUrl;
 
-        List discoveries = manager.discover(openid);
-        endpoint = manager.associate(discoveries);
+        try {
+            List discoveries = manager.discover(openid);
+            endpoint = manager.associate(discoveries);
+        } catch (DiscoveryException e) {
+            throw new DiscoveryException("Failed to discover OpenID: "+openid,e);
+        }
     }
 
     /**
