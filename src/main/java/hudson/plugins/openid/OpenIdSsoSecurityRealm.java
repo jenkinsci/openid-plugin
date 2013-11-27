@@ -117,7 +117,9 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         if (discoveredEndpoint==null) {
             // pretend that the endpoint URL is by itself an OpenID and find out an endpoint
             // if that fails, assume  that the endpoint URL is the real endpoint URL.
-            List r = new Discovery().discover(endpoint);
+            Discovery d = new Discovery();
+            d.setYadisResolver(new YadisResolver2());
+            List r = d.discover(endpoint);
             if (r == null || r.isEmpty()) {
                 discoveredEndpoint = new DiscoveryInformation(new URL(endpoint));
             } else {

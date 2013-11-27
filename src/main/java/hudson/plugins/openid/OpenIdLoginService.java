@@ -61,19 +61,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         manager = new ConsumerManager();
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
-        manager.getDiscovery().setYadisResolver(new YadisResolver() {
-            /**
-             * Improve the error diagnosis by reporting which URL had failed. openid4java as of 0.9.4 does not do that.
-             */
-            @Override
-            public YadisResult discover(String url, int maxRedirects, HttpCache cache, Set serviceTypes) throws DiscoveryException {
-                try {
-                    return super.discover(url,maxRedirects,cache,serviceTypes);
-                } catch (DiscoveryException e) {
-                    throw new DiscoveryException("Failed to discover XRDS document from "+url, e.getErrorCode(), e);
-                }
-            }
-        });
+        manager.getDiscovery().setYadisResolver(new YadisResolver2());
     }
 
     @Override
