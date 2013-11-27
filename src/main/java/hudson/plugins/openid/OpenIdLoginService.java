@@ -28,6 +28,7 @@ import hudson.model.Failure;
 import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
+import hudson.security.SecurityRealm;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
@@ -38,10 +39,18 @@ import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
+import org.openid4java.discovery.DiscoveryException;
+import org.openid4java.discovery.yadis.YadisResolver;
+import org.openid4java.discovery.yadis.YadisResult;
+import org.openid4java.util.HttpCache;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 /**
+ * Augments other {@link SecurityRealm} by allowing login via OpenID.
+ *
  * @author Kohsuke Kawaguchi
  */
 @Extension
@@ -52,6 +61,19 @@ public class OpenIdLoginService extends FederatedLoginService {
         manager = new ConsumerManager();
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
+        manager.getDiscovery().setYadisResolver(new YadisResolver() {
+            /**
+             * Improve the error diagnosis by reporting which URL had failed. openid4java as of 0.9.4 does not do that.
+             */
+            @Override
+            public YadisResult discover(String url, int maxRedirects, HttpCache cache, Set serviceTypes) throws DiscoveryException {
+                try {
+                    return super.discover(url,maxRedirects,cache,serviceTypes);
+                } catch (DiscoveryException e) {
+                    throw new DiscoveryException("Failed to discover XRDS document from "+url, e.getErrorCode(), e);
+                }
+            }
+        });
     }
 
     @Override
