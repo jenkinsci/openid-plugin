@@ -24,6 +24,7 @@
 package hudson.plugins.openid;
 
 import com.google.common.collect.Maps;
+import hudson.model.UnprotectedRootAction;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ import static hudson.plugins.openid.OpenIdTestService.*;
 /**
  * @author Paul Sandoz
  */
-public abstract class OpenIdTestCase extends HudsonTestCase {
+public abstract class OpenIdTestCase extends HudsonTestCase implements UnprotectedRootAction {
     public OpenIdTestService openid;
 
     @Override
