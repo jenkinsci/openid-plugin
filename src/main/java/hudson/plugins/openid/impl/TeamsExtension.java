@@ -57,6 +57,8 @@ import java.util.logging.Logger;
 public class TeamsExtension extends OpenIdExtension {
     @Override
     public void extend(AuthRequest authRequest) throws MessageException {
+        if (DISABLE)    return;
+
         TeamExtensionRequest req = new TeamExtensionRequest();
         Collection<String> groups = Hudson.getInstance().getAuthorizationStrategy().getGroups();
         req.setQueryMembership(groups);
@@ -69,6 +71,8 @@ public class TeamsExtension extends OpenIdExtension {
 
     @Override
     public void process(AuthSuccess authSuccess, Identity id) throws MessageException {
+        if (DISABLE)    return;
+
         TeamExtensionResponse ter = getMessageAs(TeamExtensionResponse.class,  authSuccess, TeamExtensionFactory.URI);
         List<GrantedAuthority> r = id.getGrantedAuthorities();
         for (String s : ter.getTeamMembership())
@@ -85,4 +89,9 @@ public class TeamsExtension extends OpenIdExtension {
     }
 
     private static final Logger LOGGER = Logger.getLogger(TeamsExtension.class.getName());
+
+    /**
+     * Escape hatch for people affected by JENKINS-14843 until we switch to POST.
+     */
+    public static boolean DISABLE = Boolean.getBoolean(TeamsExtension.class.getName()+"disable");
 }
