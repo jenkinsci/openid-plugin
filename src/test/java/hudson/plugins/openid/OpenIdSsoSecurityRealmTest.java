@@ -25,16 +25,13 @@ package hudson.plugins.openid;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import hudson.model.User;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
-import org.jvnet.hudson.test.HudsonTestCase;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Callable;
 

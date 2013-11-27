@@ -23,11 +23,7 @@
  */
 package hudson.plugins.openid;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import hudson.model.User;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.IOException;
