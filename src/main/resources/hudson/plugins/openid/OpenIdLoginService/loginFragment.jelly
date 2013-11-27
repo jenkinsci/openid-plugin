@@ -30,7 +30,7 @@ THE SOFTWARE.
       <style>
         #login-with-openid button {
           padding-left:26px;
-          background: url('${rootURL}/plugin/openid/openid.png') 5px center no-repeat;
+          background: url('${resURL}/openid-assets/openid.png') 5px center no-repeat;
         }
       </style>
     </form>

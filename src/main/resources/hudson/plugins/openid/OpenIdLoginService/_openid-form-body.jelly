@@ -1,8 +1,8 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <div>
-    <link type="text/css" rel="stylesheet" href="${rootURL}/plugin/openid/openid.css"/>
-    <script type="text/javascript" src="${rootURL}/plugin/openid//openid-prototype.js"/>
-    <script type="text/javascript" src="${rootURL}/plugin/openid//openid-en.js"/>
+    <link type="text/css" rel="stylesheet" href="${resURL}/openid-assets/openid.css"/>
+    <script type="text/javascript" src="${resURL}/openid-assets/openid-prototype.js"/>
+    <script type="text/javascript" src="${resURL}/openid-assets/openid-en.js"/>
 
     <div id="openid_choice">
       <p>Please click your account provider:</p>
@@ -14,7 +14,7 @@
     </div>
     <script>
       Behaviour.addLoadEvent(function() {
-        openid.img_path = '${rootURL}/plugin/openid/';
+        openid.img_path = '${resURL}/openid-assets/';
         openid.signin_text = "${%Login}";
         openid.init('openid');
         // makeButton($('openid_submit'),openid.submit);

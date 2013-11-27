@@ -29,7 +29,12 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import hudson.model.User;
+import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.security.HudsonPrivateSecurityRealm;
+import jenkins.model.Jenkins;
+import org.jvnet.hudson.test.Bug;
+
+import java.io.IOException;
 import java.util.List;
 
 import static hudson.plugins.openid.OpenIdTestService.*;
@@ -38,19 +43,46 @@ import static hudson.plugins.openid.OpenIdTestService.*;
  * @author Paul Sandoz
  */
 public class OpenIdLoginServiceTest extends OpenIdTestCase {
+    HudsonPrivateSecurityRealm realm;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        realm = new HudsonPrivateSecurityRealm(false, false, null);
+    }
+
+    @Bug(9792)
+    public void testLoginWithoutReadAccess() throws Exception {
+        openid = createServer();
+
+        jenkins.setSecurityRealm(realm);
+        User u = realm.createAccount("aliceW", "aliceW");
+        associateUserWithOpenId(u);
+
+        // configure Jenkins to allow no access at all without login
+        GlobalMatrixAuthorizationStrategy s = new GlobalMatrixAuthorizationStrategy();
+        s.add(Jenkins.ADMINISTER,"authenticated");
+        jenkins.setAuthorizationStrategy(s);
+
+        // try to login
+        login(new WebClient());
+    }
 
     public void testAssociateThenLogoutThenLogInWithOpenID() throws Exception {
-        openid = new OpenIdTestService(
-                getServiceUrl(),
-                getProps(),
-                Sets.newHashSet("foo", "bar"),
-                Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-
-        HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
+        openid = createServer();
         hudson.setSecurityRealm(realm);
         User u = realm.createAccount("aliceW", "aliceW");
+        associateUserWithOpenId(u);
 
-        WebClient wc = new WebClient().login("aliceW", "aliceW");
+        // Re-login
+        login(new WebClient());
+    }
+
+    /**
+     * Associates the OpenID identity of the user with {@link #realm}.
+     */
+    private void associateUserWithOpenId(User u) throws Exception {
+        WebClient wc = new WebClient().login(u.getId(), u.getId()/*assumes password==name*/);
 
         // Associate an OpenID with an existing user
         HtmlPage associated = wc.goTo("federatedLoginService/openid/startAssociate?openid=" + openid.url);
@@ -58,21 +90,13 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertEquals(1, p.getIdentifiers().size());
         assertEquals(openid.getUserIdentity(), p.getIdentifiers().iterator().next());
-
-        wc.goTo("logout");
-
-        // Re-login
-        login(wc);
     }
 
     public void testLogInWithOpenIDAndSignUp() throws Exception {
-        openid = new OpenIdTestService(
-                getServiceUrl(),
-                getProps(),
-                Sets.newHashSet("foo", "bar"),
-                Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+        openid = createServer();
 
-        hudson.setSecurityRealm(new HudsonPrivateSecurityRealm(true));
+        realm = new HudsonPrivateSecurityRealm(true);
+        hudson.setSecurityRealm(realm);
 
         WebClient wc = new WebClient();
         // Workaround failing ajax requests to build queue
@@ -98,6 +122,17 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
 
         // Re-login
         login(wc);
+    }
+
+    /**
+     * Creates a OpenID server.
+     */
+    private OpenIdTestService createServer() throws IOException {
+        return new OpenIdTestService(
+                getServiceUrl(),
+                getProps(),
+                Sets.newHashSet("foo", "bar"),
+                Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
     }
 
     private void login(WebClient wc) throws Exception {
