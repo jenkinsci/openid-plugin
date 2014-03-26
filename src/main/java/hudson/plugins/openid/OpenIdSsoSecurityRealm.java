@@ -24,6 +24,7 @@
 package hudson.plugins.openid;
 
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
+
 import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Failure;
@@ -31,6 +32,7 @@ import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import hudson.util.FormValidation;
+
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
@@ -81,6 +83,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     @DataBoundConstructor
     public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
         this.endpoint = endpoint;
+        addProxyPropertiesToHttpClient();
         getDiscoveredEndpoint();
     }
 
@@ -100,17 +103,26 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     protected ConsumerManager createManager() throws ConsumerException {
+        addProxyPropertiesToHttpClient();
+        ConsumerManager manager = new ConsumerManager();
+        return manager;
+    }
+
+    protected void addProxyPropertiesToHttpClient() {
         final Hudson instance = Hudson.getInstance();
         if (instance.proxy != null) {
             ProxyProperties props = new ProxyProperties();
             props.setProxyHostName(instance.proxy.name);
             props.setProxyPort(instance.proxy.port);
-            props.setUserName(instance.proxy.getUserName());
-            props.setProxyHostName(instance.proxy.getPassword());
+            // Do not populate userName and password if userName 
+            // has not been specified. 
+            if (instance.proxy.getUserName() != null) {
+                props.setUserName(instance.proxy.getUserName());
+                props.setPassword(instance.proxy.getPassword());
+            }
+            
             HttpClientFactory.setProxyProperties(props);
         }
-        ConsumerManager manager = new ConsumerManager();
-        return manager;
     }
 
     private DiscoveryInformation getDiscoveredEndpoint() throws IOException, OpenIDException {

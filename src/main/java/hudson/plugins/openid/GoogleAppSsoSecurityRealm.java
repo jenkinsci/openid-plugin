@@ -37,15 +37,7 @@ public class GoogleAppSsoSecurityRealm extends OpenIdSsoSecurityRealm {
 
     @Override
     protected ConsumerManager createManager() throws ConsumerException {
-        final Hudson instance = Hudson.getInstance();
-        if (instance.proxy != null) {
-            ProxyProperties props = new ProxyProperties();
-            props.setProxyHostName(instance.proxy.name);
-            props.setProxyPort(instance.proxy.port);
-            props.setUserName(instance.proxy.getUserName());
-            props.setProxyHostName(instance.proxy.getPassword());
-            HttpClientFactory.setProxyProperties(props);
-        }
+        addProxyPropertiesToHttpClient();
         ConsumerManager m = new ConsumerManager();
         m.setDiscovery(new Discovery() {
             /**
