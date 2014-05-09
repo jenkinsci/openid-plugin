@@ -29,6 +29,7 @@ import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.security.SecurityRealm;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
@@ -39,14 +40,8 @@ import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
-import org.openid4java.discovery.DiscoveryException;
-import org.openid4java.discovery.yadis.YadisResolver;
-import org.openid4java.discovery.yadis.YadisResult;
-import org.openid4java.util.HttpCache;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Augments other {@link SecurityRealm} by allowing login via OpenID.
@@ -57,11 +52,21 @@ import java.util.Set;
 public class OpenIdLoginService extends FederatedLoginService {
     private final ConsumerManager manager;
 
+    private boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName()+".disabled");
+
     public OpenIdLoginService() throws ConsumerException {
         manager = new ConsumerManager();
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
         manager.getDiscovery().setYadisResolver(new YadisResolver2());
+    }
+
+    public boolean isDisabled() {
+        return disabled || Jenkins.getInstance().getSecurityRealm() instanceof OpenIdSsoSecurityRealm;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
     }
 
     @Override
@@ -77,6 +82,9 @@ public class OpenIdLoginService extends FederatedLoginService {
      * Commence a login.
      */
     public HttpResponse doStartLogin(@QueryParameter String openid, @QueryParameter String openid_identifier, @QueryParameter final String from) throws OpenIDException, IOException {
+        if (isDisabled()) {
+            return HttpResponses.notFound();
+        }
         // if the script doesn't work, it'll submit 'openid_identifier'
         // <INPUT type=text NAME=openid/> is programmatically constructed
         if (openid==null)       openid = openid_identifier;
@@ -94,6 +102,9 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     public HttpResponse doFinish(StaplerRequest request) throws IOException, OpenIDException {
+        if (isDisabled()) {
+            return HttpResponses.notFound();
+        }
         OpenIdSession session = OpenIdSession.getCurrent();
         if (session==null)
             throw new Failure(Messages.OpenIdLoginService_SessionNotFound());
@@ -101,6 +112,9 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     public HttpResponse doStartAssociate(@QueryParameter String openid) throws OpenIDException, IOException {
+        if (isDisabled()) {
+            return HttpResponses.notFound();
+        }
         return new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {

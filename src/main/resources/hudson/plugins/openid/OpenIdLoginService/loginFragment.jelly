@@ -23,16 +23,18 @@ THE SOFTWARE.
 -->
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <div style="padding-top:3em">
-    <form method="get" class='no-json' action="federatedLoginService/openid/login">
-      <input type="hidden" name="from" value="${request.getParameter('from')}"/>
-      <input type="submit" value="${%Login with OpenID}" class="submit-button" id='login-with-openid'/>
-      <style>
-        #login-with-openid button {
+  <j:if test="${!it.disabled}">
+    <div style="padding-top:3em">
+      <form method="get" class='no-json' action="federatedLoginService/openid/login">
+        <input type="hidden" name="from" value="${request.getParameter('from')}"/>
+        <input type="submit" value="${%Login with OpenID}" class="submit-button" id='login-with-openid'/>
+        <style>
+          #login-with-openid button {
           padding-left:26px;
           background: url('${resURL}/openid-assets/openid.png') 5px center no-repeat;
-        }
-      </style>
-    </form>
-  </div>
+          }
+        </style>
+      </form>
+    </div>
+  </j:if>
 </j:jelly>
