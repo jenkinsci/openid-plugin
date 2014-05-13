@@ -51,6 +51,45 @@ public abstract class OpenIdTestCase extends HudsonTestCase implements Unprotect
         return getURL().toExternalForm() + getUrlName() + "/openid/";
     }
 
+    Map<IdProperty,String> getPropsAllDifferentEmails() {
+        Map<IdProperty,String> props = getProps();
+        props.remove(IdProperty.email);
+        props.put(IdProperty.email, "alice.wonder@Net");
+        props.put(IdProperty.email2, "alice@Net");
+        props.put(IdProperty.email3, "alice.wonderland@Net");
+        return props;
+    }
+    
+    Map<IdProperty,String> getPropsAllSameEmails() {
+        Map<IdProperty,String> props = getProps();
+        props.put(IdProperty.email2, "alice@Net");
+        props.put(IdProperty.email3, "alice@Net");
+        return props;
+    }
+    
+    Map<IdProperty,String> getPropsWithAnyTwoDifferentEmails() {
+        Map<IdProperty,String> props = getProps();
+        props.remove(IdProperty.email);
+        props.put(IdProperty.email2, "alice.Wonderland@Net");
+        props.put(IdProperty.email3, "alice@Net");
+        return props;
+    }
+    
+    Map<IdProperty,String> getPropsWithAnyTwoSameEmails() {
+        Map<IdProperty,String> props = getProps();
+        props.remove(IdProperty.email);
+        props.put(IdProperty.email, "alice.wonder@Net");
+        props.put(IdProperty.email3, "alice@Net");
+        return props;
+    }
+    
+    Map<IdProperty,String> getPropsWithOneEmail() {
+        Map<IdProperty,String> props = getProps();
+        props.remove(IdProperty.email);
+        props.put(IdProperty.email2, "alice.Wonderland@Net");
+        return props;
+    }
+
     Map<IdProperty,String> getProps() {
         Map<IdProperty,String> props = Maps.newEnumMap(IdProperty.class);
         props.put(IdProperty.email, "alice@Net");
