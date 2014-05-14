@@ -30,16 +30,22 @@ import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.security.SecurityRealm;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
+import org.openid4java.discovery.Discovery;
+import org.openid4java.discovery.yadis.YadisResolver;
+import org.openid4java.server.RealmVerifierFactory;
+import org.openid4java.util.HttpFetcherFactory;
 
 import java.io.IOException;
 
@@ -55,10 +61,12 @@ public class OpenIdLoginService extends FederatedLoginService {
     private boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName()+".disabled");
 
     public OpenIdLoginService() throws ConsumerException {
-        manager = new ConsumerManager();
+        HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
+        YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
+        manager = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
-        manager.getDiscovery().setYadisResolver(new YadisResolver2());
+        manager.getDiscovery().setYadisResolver(resolver);
     }
 
     public boolean isDisabled() {
@@ -89,7 +97,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         // <INPUT type=text NAME=openid/> is programmatically constructed
         if (openid==null)       openid = openid_identifier;
 
-        return new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
+        return new OpenIdSession(manager,openid, getFinishUrl()) {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 IdentityImpl id = new IdentityImpl(identity);
@@ -99,6 +107,18 @@ public class OpenIdLoginService extends FederatedLoginService {
                 return HttpResponses.redirectToContextRoot();
             }
         }.doCommenceLogin();
+    }
+
+    private String getFinishUrl() {
+        StaplerRequest req = Stapler.getCurrentRequest();
+        String contextPath = req.getContextPath();
+        if (StringUtils.isBlank(contextPath) || "/".equals(contextPath)) {
+            return "federatedLoginService/openid/finish";
+        } else {
+            // hack alert... work around some less than consistent servlet containers
+            return StringUtils.removeEnd(StringUtils.removeStart(contextPath, "/"), "/")
+                    + "/federatedLoginService/openid/finish";
+        }
     }
 
     public HttpResponse doFinish(StaplerRequest request) throws IOException, OpenIDException {
@@ -115,7 +135,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         if (isDisabled()) {
             return HttpResponses.notFound();
         }
-        return new OpenIdSession(manager,openid,"federatedLoginService/openid/finish") {
+        return new OpenIdSession(manager,openid,getFinishUrl()) {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 new IdentityImpl(identity).addToCurrentUser();

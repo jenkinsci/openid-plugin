@@ -41,16 +41,17 @@ import org.openid4java.message.sreg.SRegResponse;
  */
 @Extension
 public class UserInfoExtension extends OpenIdExtension {
-	
-	@Override 
-	public void extendFetch(FetchRequest fetch) throws MessageException {
-		fetch.addAttribute("email", "http://schema.openid.net/contact/email", true);
-	    fetch.addAttribute("firstName", "http://axschema.org/namePerson/first", true);
-	    fetch.addAttribute("lastName", "http://axschema.org/namePerson/last", true);
-	    fetch.addAttribute("ff", "http://axschema.org/namePerson", false);
-	    fetch.addAttribute("img", "http://axschema.org/media/image/default/", false);
-	}
-	
+
+    @Override
+    public void extendFetch(FetchRequest fetch) throws MessageException {
+        fetch.addAttribute("email", "http://schema.openid.net/contact/email", true);
+        fetch.addAttribute("firstName", "http://axschema.org/namePerson/first", true);
+        fetch.addAttribute("lastName", "http://axschema.org/namePerson/last", true);
+        fetch.addAttribute("nickName", "http://axschema.org/namePerson/friendly", false);
+        fetch.addAttribute("ff", "http://axschema.org/namePerson", false);
+        fetch.addAttribute("img", "http://axschema.org/media/image/default/", false);
+    }
+
     @Override
     public void extend(AuthRequest authRequest) throws MessageException {
         // extend some user information
@@ -64,28 +65,48 @@ public class UserInfoExtension extends OpenIdExtension {
 
     @Override
     public void process(AuthSuccess authSuccess, Identity id) throws MessageException {
-        SRegResponse sr = getMessageAs(SRegResponse.class,  authSuccess, SRegMessage.OPENID_NS_SREG);
-        id.setNick(sr.getAttributeValue("nickname"));
-        String fullName = sr.getAttributeValue("fullname");
-        String email = sr.getAttributeValue("email");
+
+        String nick = null;
+        String fullName = null;
+        String email = null;
+        try {
+            SRegResponse sr = getMessageAs(SRegResponse.class, authSuccess, SRegMessage.OPENID_NS_SREG);
+            nick = sr.getAttributeValue("nickname");
+            fullName = sr.getAttributeValue("fullname");
+            email = sr.getAttributeValue("email");
+        } catch (MessageException e) {
+            // ignore as this is a failure to sign sreg
+        }
 
         try {
-            FetchResponse fr = getMessageAs(FetchResponse.class,  authSuccess, AxMessage.OPENID_NS_AX);
-            if (fr!=null) {
-                if (fullName==null) {
+            FetchResponse fr = getMessageAs(FetchResponse.class, authSuccess, AxMessage.OPENID_NS_AX);
+            if (fr != null) {
+                if (fullName == null) {
                     String first = fr.getAttributeValue("firstName");
                     String last = fr.getAttributeValue("lastName");
-                    if (first!=null & last!=null)
-                        fullName = first+" "+last;
+                    if (first != null & last != null) {
+                        fullName = first + " " + last;
+                    }
                 }
-                if (email==null)
+                if (email == null) {
                     email = fr.getAttributeValue("email");
+                }
+                if (nick == null) {
+                    nick = fr.getAttributeValue("nickName");
+                }
             }
         } catch (MessageException e) {
             // if the process doesn't contain AX information, ignore. Maybe this is a bug in openid4java?
             // "0x100: Invalid value for attribute exchange mode: null"
         }
-        id.setFullName(fullName);
-        id.setEmail(email);
+        if (nick != null) {
+            id.setNick(nick);
+        }
+        if (fullName != null) {
+            id.setFullName(fullName);
+        }
+        if (email != null) {
+            id.setEmail(email);
+        }
     }
 }

@@ -8,12 +8,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
+import org.openid4java.consumer.InMemoryConsumerAssociationStore;
+import org.openid4java.consumer.InMemoryNonceVerifier;
 import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.discovery.UrlIdentifier;
+import org.openid4java.server.RealmVerifierFactory;
 import org.openid4java.util.HttpClientFactory;
+import org.openid4java.util.HttpFetcherFactory;
 import org.openid4java.util.ProxyProperties;
 
 import java.io.IOException;
@@ -46,7 +50,11 @@ public class GoogleAppSsoSecurityRealm extends OpenIdSsoSecurityRealm {
             props.setProxyHostName(instance.proxy.getPassword());
             HttpClientFactory.setProxyProperties(props);
         }
-        ConsumerManager m = new ConsumerManager();
+        HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
+        YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
+        ConsumerManager m = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
+        m.setAssociations(new InMemoryConsumerAssociationStore());
+        m.setNonceVerifier(new InMemoryNonceVerifier(5000));
         m.setDiscovery(new Discovery() {
             /**
              * See http://www.slideshare.net/timdream/google-apps-account-as-openid for more details
@@ -80,6 +88,7 @@ public class GoogleAppSsoSecurityRealm extends OpenIdSsoSecurityRealm {
                 return super.discover(id);
             }
         });
+        m.getDiscovery().setYadisResolver(resolver);
         return m;
     }
 

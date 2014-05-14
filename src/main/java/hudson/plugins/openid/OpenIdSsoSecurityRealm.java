@@ -54,7 +54,9 @@ import org.openid4java.consumer.InMemoryNonceVerifier;
 import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
+import org.openid4java.server.RealmVerifierFactory;
 import org.openid4java.util.HttpClientFactory;
+import org.openid4java.util.HttpFetcherFactory;
 import org.openid4java.util.ProxyProperties;
 
 import java.io.IOException;
@@ -109,7 +111,12 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             props.setProxyHostName(instance.proxy.getPassword());
             HttpClientFactory.setProxyProperties(props);
         }
-        ConsumerManager manager = new ConsumerManager();
+        HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
+        YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
+        ConsumerManager manager = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
+        manager.setAssociations(new InMemoryConsumerAssociationStore());
+        manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
+        manager.getDiscovery().setYadisResolver(resolver);
         return manager;
     }
 
@@ -118,7 +125,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             // pretend that the endpoint URL is by itself an OpenID and find out an endpoint
             // if that fails, assume  that the endpoint URL is the real endpoint URL.
             Discovery d = new Discovery();
-            d.setYadisResolver(new YadisResolver2());
+            d.setYadisResolver(new YadisResolver2(new HttpFetcherFactory()));
             List r = d.discover(endpoint);
             if (r == null || r.isEmpty()) {
                 discoveredEndpoint = new DiscoveryInformation(new URL(endpoint));
