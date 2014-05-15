@@ -49,6 +49,7 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
     public void setUp() throws Exception {
         super.setUp();
         realm = new HudsonPrivateSecurityRealm(false, false, null);
+        jenkins.getDescriptorByType(OpenIdLoginService.GlobalConfigurationImpl.class).setEnabled(true);
     }
 
     @Bug(9792)
