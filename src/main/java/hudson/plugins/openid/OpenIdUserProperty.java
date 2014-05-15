@@ -23,14 +23,17 @@
  */
 package hudson.plugins.openid;
 
+import com.google.inject.Inject;
 import hudson.Extension;
 import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.model.UserProperty;
 import hudson.model.UserPropertyDescriptor;
 import hudson.security.AbstractPasswordBasedSecurityRealm;
+import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.util.Secret;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.ArrayList;
@@ -69,6 +72,10 @@ public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
 
     @Extension
     public static class DescriptorImpl extends UserPropertyDescriptor {
+
+        @Inject
+        private OpenIdLoginService openIdLoginService;
+
         @Override
         public UserProperty newInstance(User user) {
             return new OpenIdUserProperty(Collections.<String>emptySet());
@@ -76,7 +83,8 @@ public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
 
         @Override
         public boolean isEnabled() {
-            return Hudson.getInstance().getSecurityRealm() instanceof AbstractPasswordBasedSecurityRealm;
+            return Jenkins.getInstance().getSecurityRealm() instanceof AbstractPasswordBasedSecurityRealm
+                    && (openIdLoginService != null && !openIdLoginService.isDisabled());
         }
 
         @Override
