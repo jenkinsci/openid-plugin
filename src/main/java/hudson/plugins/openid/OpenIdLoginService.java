@@ -23,13 +23,18 @@
  */
 package hudson.plugins.openid;
 
+import com.google.inject.Inject;
 import hudson.Extension;
 import hudson.model.Failure;
 import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
+import hudson.security.GlobalSecurityConfiguration;
 import hudson.security.SecurityRealm;
+import jenkins.model.GlobalConfiguration;
+import jenkins.model.GlobalConfigurationCategory;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
@@ -56,9 +61,11 @@ import java.io.IOException;
  */
 @Extension
 public class OpenIdLoginService extends FederatedLoginService {
+    @Inject
+    private transient Jenkins jenkins;
     private final ConsumerManager manager;
 
-    private boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName()+".disabled");
+    private static boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName()+".disabled");
 
     public OpenIdLoginService() throws ConsumerException {
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
@@ -70,7 +77,8 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     public boolean isDisabled() {
-        return disabled || Jenkins.getInstance().getSecurityRealm() instanceof OpenIdSsoSecurityRealm;
+        return disabled || !jenkins.getDescriptorByType(GlobalConfigurationImpl.class).isEnabled()
+                || jenkins.getSecurityRealm() instanceof OpenIdSsoSecurityRealm;
     }
 
     public void setDisabled(boolean disabled) {
@@ -174,6 +182,42 @@ public class OpenIdLoginService extends FederatedLoginService {
         @Override
         public String getPronoun() {
             return "OpenID";
+        }
+    }
+
+    @Extension
+    public static class GlobalConfigurationImpl extends GlobalConfiguration {
+
+        private boolean enabled;
+
+        public GlobalConfigurationImpl() {
+            super();
+            load();
+        }
+
+        public boolean isHidden() {
+            return disabled;
+        }
+
+        public boolean isEnabled() {
+            return enabled && !disabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+            req.bindJSON(this, json);
+            save();
+            return true;
+        }
+
+
+        @Override
+        public GlobalConfigurationCategory getCategory() {
+            return GlobalConfigurationCategory.get(GlobalConfigurationCategory.Security.class);
         }
     }
 }
