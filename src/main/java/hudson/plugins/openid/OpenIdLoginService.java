@@ -25,6 +25,7 @@ package hudson.plugins.openid;
 
 import com.google.inject.Inject;
 import hudson.Extension;
+import hudson.XmlFile;
 import hudson.model.Failure;
 import hudson.model.User;
 import hudson.security.FederatedLoginService;
@@ -192,7 +193,16 @@ public class OpenIdLoginService extends FederatedLoginService {
 
         public GlobalConfigurationImpl() {
             super();
-            load();
+            if(getConfigFile().exists()) {
+                load();
+            } else {
+                // need to detect if this is a legacy upgrade
+                try {
+                    setEnabled(Jenkins.getInstance().getPlugin("openid").getWrapper().isDowngradable());
+                } catch (NullPointerException e) {
+                    // just to be safe.
+                }
+            }
         }
 
         public boolean isHidden() {
@@ -205,12 +215,12 @@ public class OpenIdLoginService extends FederatedLoginService {
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
+            save();
         }
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             req.bindJSON(this, json);
-            save();
             return true;
         }
 
