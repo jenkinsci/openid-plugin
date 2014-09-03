@@ -42,16 +42,20 @@ import org.openid4java.message.sreg.SRegResponse;
 @Extension
 public class UserInfoExtension extends OpenIdExtension {
 
-    @Override
+    @Override 
     public void extendFetch(FetchRequest fetch) throws MessageException {
-        fetch.addAttribute("email", "http://schema.openid.net/contact/email", true);
+        // AX is standardized, but OPs support multiple different Email parameters.
+        // see http://blog.nerdbank.net/2009/03/how-to-pretty-much-guarantee-that-you.html
+        fetch.addAttribute("email", "http://axschema.org/contact/email", true);
+        fetch.addAttribute("email2", "http://schema.openid.net/contact/email", true);
+        fetch.addAttribute("email3", "http://openid.net/schema/contact/email", true);
         fetch.addAttribute("firstName", "http://axschema.org/namePerson/first", true);
         fetch.addAttribute("lastName", "http://axschema.org/namePerson/last", true);
         fetch.addAttribute("nickName", "http://axschema.org/namePerson/friendly", false);
         fetch.addAttribute("ff", "http://axschema.org/namePerson", false);
         fetch.addAttribute("img", "http://axschema.org/media/image/default/", false);
     }
-
+    
     @Override
     public void extend(AuthRequest authRequest) throws MessageException {
         // extend some user information
@@ -90,10 +94,17 @@ public class UserInfoExtension extends OpenIdExtension {
                 }
                 if (email == null) {
                     email = fr.getAttributeValue("email");
+<<<<<<< HEAD
                 }
                 if (nick == null) {
                     nick = fr.getAttributeValue("nickName");
                 }
+=======
+                if (email==null)
+                    email = fr.getAttributeValue("email2");
+                if (email==null)
+                    email = fr.getAttributeValue("email3");
+>>>>>>> pull-6
             }
         } catch (MessageException e) {
             // if the process doesn't contain AX information, ignore. Maybe this is a bug in openid4java?
