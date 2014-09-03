@@ -92,19 +92,14 @@ public class UserInfoExtension extends OpenIdExtension {
                         fullName = first + " " + last;
                     }
                 }
-                if (email == null) {
+                if (email == null)
                     email = fr.getAttributeValue("email");
-<<<<<<< HEAD
-                }
-                if (nick == null) {
-                    nick = fr.getAttributeValue("nickName");
-                }
-=======
                 if (email==null)
                     email = fr.getAttributeValue("email2");
                 if (email==null)
                     email = fr.getAttributeValue("email3");
->>>>>>> pull-6
+                if (nick == null)
+                    nick = fr.getAttributeValue("nickName");
             }
         } catch (MessageException e) {
             // if the process doesn't contain AX information, ignore. Maybe this is a bug in openid4java?
