@@ -210,6 +210,16 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         return session.doFinishLogin(request);
     }
 
+    /**
+     * Allow OpenId SSO Security Realms to determine the extensions that are applicable.
+     * @param openIdExtension the extension.
+     * @return {@code true} if this extension is appropriate.
+     * @since 2.2
+     */
+    public boolean isApplicable(OpenIdExtension openIdExtension) {
+        return true;
+    }
+
     @Extension
     public static class DescriptorImpl extends Descriptor<SecurityRealm> {
         public String getDisplayName() {
