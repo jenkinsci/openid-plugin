@@ -102,22 +102,30 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     protected ConsumerManager createManager() throws ConsumerException {
-        final Hudson instance = Hudson.getInstance();
-        if (instance.proxy != null) {
-            ProxyProperties props = new ProxyProperties();
-            props.setProxyHostName(instance.proxy.name);
-            props.setProxyPort(instance.proxy.port);
-            props.setUserName(instance.proxy.getUserName());
-            props.setProxyHostName(instance.proxy.getPassword());
-            HttpClientFactory.setProxyProperties(props);
-        }
+        addProxyPropertiesToHttpClient();
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
         ConsumerManager manager = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
-        manager.getDiscovery().setYadisResolver(resolver);
-        return manager;
+        manager.getDiscovery().setYadisResolver(resolver);        return manager;
+    }
+
+    protected void addProxyPropertiesToHttpClient() {
+        final Hudson instance = Hudson.getInstance();
+        if (instance.proxy != null) {
+            ProxyProperties props = new ProxyProperties();
+            props.setProxyHostName(instance.proxy.name);
+            props.setProxyPort(instance.proxy.port);
+            // Do not populate userName and password if userName 
+            // has not been specified. 
+            if (instance.proxy.getUserName() != null) {
+                props.setUserName(instance.proxy.getUserName());
+                props.setPassword(instance.proxy.getPassword());
+            }
+            
+            HttpClientFactory.setProxyProperties(props);
+        }
     }
 
     private DiscoveryInformation getDiscoveredEndpoint() throws IOException, OpenIDException {

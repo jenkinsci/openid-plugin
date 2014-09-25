@@ -23,24 +23,44 @@
  */
 package hudson.plugins.openid;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static hudson.plugins.openid.OpenIdTestService.AX_EXTENSION;
+import static hudson.plugins.openid.OpenIdTestService.SREG_EXTENSION;
+import static hudson.plugins.openid.OpenIdTestService.TEAM_EXTENSION;
+import hudson.ProxyConfiguration;
 import hudson.model.User;
-import org.acegisecurity.Authentication;
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.context.SecurityContextHolder;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
+import hudson.plugins.openid.OpenIdTestService.IdProperty;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static hudson.plugins.openid.OpenIdTestService.*;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.context.SecurityContextHolder;
+import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
+import org.openid4java.discovery.DiscoveryException;
+import org.openid4java.util.HttpClientFactory;
+
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Paul Sandoz
  */
 public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
+
+    private static final String FAKE_PROXY_PASSWORD = "mrwayne";
+    private static final String FAKE_PROXY_USER_NAME = "thebutler";
+    private static final int FAKE_PROXY_PORT_ALTERNATIVE = 4321;
+    private static final int FAKE_JENKINS_PROXY_PORT = 1234;
+    private static final String FAKE_PROXY_NAME = "fakeproxy.jenkins-ci.org";
+
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+
+		HttpClientFactory.setProxyProperties(null);
+	}
 
     void _testLogin(String userName) throws Exception {
         WebClient wc = new WebClient();
@@ -149,4 +169,75 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 
         _testLogin(openid.getUserIdentity());
     }
+
+	public void testProxyInformationAvailableForCreateManager()
+			throws Exception {
+		openid = new OpenIdTestService(getServiceUrl(), getProps(),
+				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
+						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+
+		OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
+		hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+				FAKE_JENKINS_PROXY_PORT);
+		realm.createManager();
+
+		assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
+				.getProxyHostName());
+		assertEquals(FAKE_JENKINS_PROXY_PORT, HttpClientFactory
+				.getProxyProperties().getProxyPort());
+	}
+
+	public void testProxyInformationAvailableForDiscoverNoCredentials()
+			throws Exception {
+		openid = new OpenIdTestService(getServiceUrl(), getProps(),
+				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
+						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+
+		hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+				FAKE_JENKINS_PROXY_PORT);
+		try {
+			new OpenIdSsoSecurityRealm(openid.url);
+		} catch (DiscoveryException e) {
+			// This is expected since the proxy is fake. Hence, discovery will
+			// not be possible
+		}
+
+		assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
+				.getProxyHostName());
+		assertEquals(FAKE_JENKINS_PROXY_PORT, HttpClientFactory
+				.getProxyProperties().getProxyPort());
+		// The openid4java ProxyProperties class returns a default value of
+		// anonymous if userName
+		// or password is null or empty string
+		assertEquals("anonymous", HttpClientFactory.getProxyProperties()
+				.getUserName());
+		assertEquals("anonymous", HttpClientFactory.getProxyProperties()
+				.getPassword());
+	}
+
+	public void testProxyInformationAvailableForDiscoverWithCredentials()
+			throws Exception {
+		openid = new OpenIdTestService(getServiceUrl(), getProps(),
+				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
+						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+
+		hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+				FAKE_PROXY_PORT_ALTERNATIVE, FAKE_PROXY_USER_NAME,
+				FAKE_PROXY_PASSWORD);
+		try {
+			new OpenIdSsoSecurityRealm(openid.url);
+		} catch (DiscoveryException e) {
+			// This is expected since the proxy is fake. Hence, discovery will
+			// not be possible
+		}
+
+		assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
+				.getProxyHostName());
+		assertEquals(FAKE_PROXY_PORT_ALTERNATIVE, HttpClientFactory
+				.getProxyProperties().getProxyPort());
+		assertEquals(FAKE_PROXY_USER_NAME, HttpClientFactory
+				.getProxyProperties().getUserName());
+		assertEquals(FAKE_PROXY_PASSWORD, HttpClientFactory
+				.getProxyProperties().getPassword());
+	}
 }
