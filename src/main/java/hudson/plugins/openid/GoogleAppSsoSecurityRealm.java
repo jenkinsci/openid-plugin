@@ -41,7 +41,6 @@ public class GoogleAppSsoSecurityRealm extends OpenIdSsoSecurityRealm {
 
     @Override
     protected ConsumerManager createManager() throws ConsumerException {
-        addProxyPropertiesToHttpClient();
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
         ConsumerManager m = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);

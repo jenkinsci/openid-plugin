@@ -175,11 +175,16 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 		openid = new OpenIdTestService(getServiceUrl(), getProps(),
 				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
 						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+        hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+                FAKE_JENKINS_PROXY_PORT);
 
-		OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
-		hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
-				FAKE_JENKINS_PROXY_PORT);
-		realm.createManager();
+        try {
+            OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
+            realm.createManager();
+        } catch (DiscoveryException e) {
+            // This is expected since the proxy is fake. Hence, discovery will
+            // not be possible
+        }
 
 		assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
 				.getProxyHostName());

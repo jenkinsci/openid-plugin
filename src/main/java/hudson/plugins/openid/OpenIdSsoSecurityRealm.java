@@ -83,6 +83,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     @DataBoundConstructor
     public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
         this.endpoint = endpoint;
+        addProxyPropertiesToHttpClient();
         getDiscoveredEndpoint();
     }
 
@@ -102,7 +103,6 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     }
 
     protected ConsumerManager createManager() throws ConsumerException {
-        addProxyPropertiesToHttpClient();
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
         ConsumerManager manager = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
