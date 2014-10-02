@@ -72,19 +72,15 @@ import jenkins.model.Jenkins;
  */
 public class OpenIdSsoSecurityRealm extends SecurityRealm {
     private /*almost final*/ transient volatile ConsumerManager manager;
-//    private final DiscoveryInformation endpoint;
 
     // for example, https://login.launchpad.net/+openid
     // 
     public final String endpoint;
 
-    private transient volatile DiscoveryInformation discoveredEndpoint;
-
     @DataBoundConstructor
     public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
         this.endpoint = endpoint;
         addProxyPropertiesToHttpClient();
-        getDiscoveredEndpoint();
     }
 
     private ConsumerManager getManager() throws ConsumerException {
@@ -126,22 +122,6 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             
             HttpClientFactory.setProxyProperties(props);
         }
-    }
-
-    private DiscoveryInformation getDiscoveredEndpoint() throws IOException, OpenIDException {
-        if (discoveredEndpoint==null) {
-            // pretend that the endpoint URL is by itself an OpenID and find out an endpoint
-            // if that fails, assume  that the endpoint URL is the real endpoint URL.
-            Discovery d = new Discovery();
-            d.setYadisResolver(new YadisResolver2(new HttpFetcherFactory()));
-            List r = d.discover(endpoint);
-            if (r == null || r.isEmpty()) {
-                discoveredEndpoint = new DiscoveryInformation(new URL(endpoint));
-            } else {
-                discoveredEndpoint = (DiscoveryInformation) r.get(0);
-            }
-        }
-        return discoveredEndpoint;
     }
 
     /**
