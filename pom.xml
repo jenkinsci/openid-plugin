@@ -12,6 +12,12 @@
   <version>2.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
+  <properties>
+    <findbugs-maven-plugin.version>3.0.1</findbugs-maven-plugin.version>
+    <!--TODO: change to true after the code cleanup-->
+    <maven.findbugs.failure.strict>false</maven.findbugs.failure.strict>
+  </properties>
+
   <url>http://wiki.jenkins-ci.org/display/JENKINS/OpenID+Plugin</url>
   <licenses>
     <license>
@@ -59,6 +65,12 @@
       <artifactId>mailer</artifactId>
       <version>1.8</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+      <version>3.0.0</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -66,6 +78,25 @@
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>${findbugs-maven-plugin.version}</version>
+        <configuration>
+          <failOnError>${maven.findbugs.failure.strict}</failOnError>
+          <xmlOutput>true</xmlOutput>
+          <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+        </configuration>
+        <executions>
+          <execution>
+            <id>run-findbugs</id>
+            <phase>verify</phase> 
+            <goals>
+              <goal>check</goal> 
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
