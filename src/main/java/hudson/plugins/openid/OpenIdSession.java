@@ -27,6 +27,7 @@ import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
 import hudson.model.Failure;
 import hudson.model.Hudson;
+import hudson.util.HttpResponses;
 import org.acegisecurity.GrantedAuthorityImpl;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
@@ -47,6 +48,7 @@ import org.openid4java.message.sreg.SRegRequest;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import org.openid4java.message.Message;
 
 /**
  * Represents state for an OpenID authentication.
@@ -112,11 +114,17 @@ public abstract class OpenIdSession {
 
         // examine the verification result and extract the verified identifier
         Identifier verified = verification.getVerifiedId();
-        if (verified == null)
+        if (verified == null) {
             throw new Failure("Failed to login: " + verification.getStatusMsg());
-
-        AuthSuccess authSuccess = (AuthSuccess) verification.getAuthResponse();
-        return onSuccess(new Identity(authSuccess));
+        }
+            
+        final Message authResponse = verification.getAuthResponse();
+        if (authResponse instanceof AuthSuccess) {
+            AuthSuccess authSuccess = (AuthSuccess) authResponse;
+            return onSuccess(new Identity(authSuccess));
+        } else {
+            throw new Failure("Failed to login. Authentication failed with the following response: " + authResponse);
+        }
     }
 
     protected abstract HttpResponse onSuccess(Identity identity) throws IOException;

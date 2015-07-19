@@ -138,6 +138,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      * later (by {@link AuthenticationManager}) to verify it. But in case of OpenID,
      * we create an {@link Authentication} only after we verified the user identity,
      * so {@link AuthenticationManager} becomes no-op.
+     * @return Created {@link SecurityComponents} 
      */
     @Override
     public SecurityComponents createSecurityComponents() {

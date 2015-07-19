@@ -27,6 +27,7 @@ import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
 import com.cloudbees.openid4java.team.TeamExtensionResponse;
 import com.google.common.collect.Lists;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Hudson;
 import hudson.plugins.openid.Identity;
@@ -93,6 +94,8 @@ public class TeamsExtension extends OpenIdExtension {
     /**
      * Escape hatch for people affected by JENKINS-14843 until we switch to POST.
      */
+    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", 
+            justification = "Common Jenkins pstter for configs, which may be changed in the runtime")
     public static boolean DISABLE = Boolean.parseBoolean(
             System.getProperty(TeamsExtension.class.getName()+".disable",
                     System.getProperty(TeamsExtension.class.getName()+"disable")
