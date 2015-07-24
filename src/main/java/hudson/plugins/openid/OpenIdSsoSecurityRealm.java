@@ -93,7 +93,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 final ConsumerManager managerInitializer = createManager();
                 managerInitializer.setAssociations(new InMemoryConsumerAssociationStore());
                 managerInitializer.setNonceVerifier(new InMemoryNonceVerifier(5000));
-                // We assign the vlue only after the full initialization
+                // We assign the value only after the complete object initialization
                 manager = managerInitializer;
             }
         }
