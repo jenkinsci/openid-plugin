@@ -89,7 +89,7 @@ public abstract class OpenIdSession {
         String url = authReq.getDestinationUrl(true);
 
         // remember this in the session
-        Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,this.toString());
+        Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME,this);
 
         return new HttpRedirect(url);
     }

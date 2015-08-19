@@ -95,7 +95,7 @@ public class TeamsExtension extends OpenIdExtension {
      * Escape hatch for people affected by JENKINS-14843 until we switch to POST.
      */
     @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", 
-            justification = "Common Jenkins pstter for configs, which may be changed in the runtime")
+            justification = "Common Jenkins pattern for configs, which may be changed in the runtime")
     public static boolean DISABLE = Boolean.parseBoolean(
             System.getProperty(TeamsExtension.class.getName()+".disable",
                     System.getProperty(TeamsExtension.class.getName()+"disable")
