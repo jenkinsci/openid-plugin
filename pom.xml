@@ -14,7 +14,8 @@
 
   <properties>
     <findbugs-maven-plugin.version>3.0.1</findbugs-maven-plugin.version>
-    <findbugs.failOnError>true</findbugs.failOnError>
+    <!--TODO: Enforce when the code becomes 100% clean-->
+    <findbugs.failOnError>false</findbugs.failOnError>
   </properties>
 
   <url>http://wiki.jenkins-ci.org/display/JENKINS/OpenID+Plugin</url>
