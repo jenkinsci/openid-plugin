@@ -88,7 +88,7 @@ public class UserInfoExtension extends OpenIdExtension {
                 if (fullName == null) {
                     String first = fr.getAttributeValue("firstName");
                     String last = fr.getAttributeValue("lastName");
-                    if (first != null & last != null) {
+                    if (first != null && last != null) {
                         fullName = first + " " + last;
                     }
                 }

@@ -90,9 +90,11 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
         synchronized (this) {
             if (manager==null) {
-                manager =createManager();
-                manager.setAssociations(new InMemoryConsumerAssociationStore());
-                manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
+                final ConsumerManager managerInitializer = createManager();
+                managerInitializer.setAssociations(new InMemoryConsumerAssociationStore());
+                managerInitializer.setNonceVerifier(new InMemoryNonceVerifier(5000));
+                // We assign the value only after the complete object initialization
+                manager = managerInitializer;
             }
         }
         return manager;
@@ -138,6 +140,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      * later (by {@link AuthenticationManager}) to verify it. But in case of OpenID,
      * we create an {@link Authentication} only after we verified the user identity,
      * so {@link AuthenticationManager} becomes no-op.
+     * @return Created {@link SecurityComponents} 
      */
     @Override
     public SecurityComponents createSecurityComponents() {

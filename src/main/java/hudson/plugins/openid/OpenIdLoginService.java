@@ -82,8 +82,24 @@ public class OpenIdLoginService extends FederatedLoginService {
                 || jenkins.getSecurityRealm() instanceof OpenIdSsoSecurityRealm;
     }
 
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
+    //TODO: Such usage of static fields is a bad practice in any case.
+    /**
+     * Globally sets the disabled flag on {@link OpenIdLoginService} instances.
+     * @param isDisabled Flag to be set
+     * @deprecated Use {@link #setDisabledGlobal(boolean)}
+     */
+    @Deprecated
+    public void setDisabled(boolean isDisabled) {
+        setDisabledGlobal(isDisabled);
+    }
+    
+    /**
+     * Globally sets the disabled flag on {@link OpenIdLoginService} instances.
+     * @param isDisabled Flag to be set
+     * @since TODO
+     */
+    public static void setDisabledGlobal(boolean isDisabled) {
+        disabled = isDisabled;
     }
 
     @Override
