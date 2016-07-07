@@ -37,12 +37,19 @@ import org.acegisecurity.Authentication;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.util.HttpClientFactory;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Paul Sandoz
@@ -55,18 +62,14 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     private static final int FAKE_JENKINS_PROXY_PORT = 1234;
     private static final String FAKE_PROXY_NAME = "fakeproxy.jenkins-ci.org";
 
-	@Override
-	public void setUp() throws Exception {
-		super.setUp();
-
-		HttpClientFactory.setProxyProperties(null);
-	}
+    @Rule
+    public JenkinsRule jr = new SsoSecurityRealmTestRule();
 
     void _testLogin(String userName) throws Exception {
-        WebClient wc = new WebClient();
+        WebClient wc = jr.createWebClient();
 
         OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
-        hudson.setSecurityRealm(realm);
+        jr.jenkins.setSecurityRealm(realm);
 
         HtmlPage top = wc.goTo("");
         top = top.getAnchorByText("log in").click();
@@ -102,6 +105,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         return false;
     }
 
+    @Test
     public void testLoginWithAllExtensions() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -112,6 +116,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         _testLogin(openid.props.get(IdProperty.nick));
     }
 
+    @Test
     public void testLoginWithWithoutAXExtension() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -122,6 +127,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         _testLogin(openid.props.get(IdProperty.nick));
     }
 
+    @Test
     public void testLoginWithWithoutAXExtensionAndNick() throws Exception {
         Map<IdProperty,String> props = getProps();
         props.remove(IdProperty.nick);
@@ -134,8 +140,10 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         _testLogin(openid.props.get(IdProperty.email));
     }
 
+    @Test
     public void testLoginWithWithoutAXExtensionAndNickAndEmail() throws Exception {
         Map<OpenIdTestService.IdProperty,String> props = getProps();
+        props.put(OpenIdTestService.IdProperty.email2, props.get(OpenIdTestService.IdProperty.email)); //TODO: better define how to get UserIdentity
         props.remove(OpenIdTestService.IdProperty.nick);
         props.remove(OpenIdTestService.IdProperty.email);
         openid = new OpenIdTestService(
@@ -147,6 +155,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         _testLogin(openid.getUserIdentity());
     }
 
+    @Test
     public void testLoginWithWithoutSRegExtension() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -157,9 +166,10 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         _testLogin(openid.props.get(IdProperty.email));
     }
 
-
+    @Test
     public void testLoginWithWithoutSRegExtensionAndEmailAddress() throws Exception {
         Map<OpenIdTestService.IdProperty,String> props = getProps();
+        props.put(OpenIdTestService.IdProperty.email2, props.get(OpenIdTestService.IdProperty.email)); //TODO: better define how to get UserIdentity
         props.remove(OpenIdTestService.IdProperty.email);
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -170,12 +180,13 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         _testLogin(openid.getUserIdentity());
     }
 
+    @Test
 	public void testProxyInformationAvailableForCreateManager()
 			throws Exception {
 		openid = new OpenIdTestService(getServiceUrl(), getProps(),
 				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
 						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-        hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+        jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
                 FAKE_JENKINS_PROXY_PORT);
 
         try {
@@ -192,13 +203,14 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 				.getProxyProperties().getProxyPort());
 	}
 
+    @Test
 	public void testProxyInformationAvailableForDiscoverNoCredentials()
 			throws Exception {
 		openid = new OpenIdTestService(getServiceUrl(), getProps(),
 				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
 						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
 
-		hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+		jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
 				FAKE_JENKINS_PROXY_PORT);
 		try {
 			new OpenIdSsoSecurityRealm(openid.url);
@@ -220,13 +232,14 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 				.getPassword());
 	}
 
+    @Test
 	public void testProxyInformationAvailableForDiscoverWithCredentials()
 			throws Exception {
 		openid = new OpenIdTestService(getServiceUrl(), getProps(),
 				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
 						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
 
-		hudson.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+		jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
 				FAKE_PROXY_PORT_ALTERNATIVE, FAKE_PROXY_USER_NAME,
 				FAKE_PROXY_PASSWORD);
 		try {
@@ -245,4 +258,13 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 		assertEquals(FAKE_PROXY_PASSWORD, HttpClientFactory
 				.getProxyProperties().getPassword());
 	}
+
+        public static class SsoSecurityRealmTestRule extends OpenIdTestCase.OpenIdRule {
+            @Before
+            public void before() throws Throwable {
+                super.before();
+
+                HttpClientFactory.setProxyProperties(null);
+            } 
+        }
 }

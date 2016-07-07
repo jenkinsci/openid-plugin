@@ -25,30 +25,40 @@ package hudson.plugins.openid;
 
 import com.google.common.collect.Maps;
 import hudson.model.UnprotectedRootAction;
-import org.jvnet.hudson.test.HudsonTestCase;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
 import java.io.IOException;
 import java.util.Map;
 
 import static hudson.plugins.openid.OpenIdTestService.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Paul Sandoz
  */
-public abstract class OpenIdTestCase extends HudsonTestCase implements UnprotectedRootAction {
+public class OpenIdTestCase implements UnprotectedRootAction {
     public OpenIdTestService openid;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+    @Rule
+    public JenkinsRule jr = new OpenIdRule();
 
-        // Set to null to avoid errors on association POST requests
-        // set from openid4java
-        hudson.setCrumbIssuer(null);
+    public String getIconFileName() {
+        return null;
+    }
+
+    public String getDisplayName() {
+        return null;
+    }
+
+    public String getUrlName() {
+        return jr.getUrlName();
     }
 
     String getServiceUrl() throws IOException {
-        return getURL().toExternalForm() + getUrlName() + "/openid/";
+        return jr.getURL().toExternalForm() + getUrlName() + "/openid/";
     }
 
     Map<IdProperty,String> getPropsAllDifferentEmails() {
@@ -99,5 +109,15 @@ public abstract class OpenIdTestCase extends HudsonTestCase implements Unprotect
         props.put(IdProperty.lastName, "wonderland");
         props.put(IdProperty.derivedFullName, "alice wonderland");
         return props;
+    }
+
+    public static class OpenIdRule extends JenkinsRule {
+        public void before() throws Throwable {
+            super.before();
+
+            // Set to null to avoid errors on association POST requests
+            // set from openid4java
+            jenkins.setCrumbIssuer(null);
+        } 
     }
 }

@@ -32,10 +32,12 @@ import hudson.model.User;
 import hudson.plugins.openid.OpenIdTestService.IdProperty;
 import hudson.tasks.Mailer;
 import hudson.tasks.Mailer.UserProperty;
+import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
 import java.util.Map;
 
 import static hudson.plugins.openid.OpenIdTestService.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Nirmal Jonnalagedda
@@ -43,10 +45,10 @@ import static hudson.plugins.openid.OpenIdTestService.*;
 public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
 
     void _testEmailAttributes(String userName) throws Exception {
-        WebClient wc = new WebClient();
+        WebClient wc = jr.createWebClient();
 
         OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
-        hudson.setSecurityRealm(realm);
+        jr.jenkins.setSecurityRealm(realm);
 
         HtmlPage top = wc.goTo("");
         top = top.getAnchorByText("log in").click();
