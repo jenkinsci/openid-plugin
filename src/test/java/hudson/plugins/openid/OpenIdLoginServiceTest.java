@@ -107,7 +107,7 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
 
         WebClient wc = jr.createWebClient();
         // Workaround failing ajax requests to build queue
-        //wc.getOptions().setThrowExceptionOnScriptError(false);
+        wc.getOptions().setThrowExceptionOnScriptError(false);
 
         // Login with OpenID as an unregistered user
         HtmlPage login = wc.goTo("federatedLoginService/openid/login?from=/");

@@ -111,6 +111,13 @@ public class OpenIdTestCase implements UnprotectedRootAction {
         return props;
     }
 
+    /**
+     * TODO: the setCrumbIssuer fails because the server has already
+     * started.  However, there is no real good place to add this 
+     * feature, and stopping/restarting the server throws errors.
+     *
+     * I believe this is critical to getting the openid tests to work. 
+     */
     public static class OpenIdRule extends JenkinsRule {
         public void before() throws Throwable {
             super.before();

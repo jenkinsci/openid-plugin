@@ -32,6 +32,8 @@ import hudson.model.User;
 import hudson.plugins.openid.OpenIdTestService.IdProperty;
 import hudson.tasks.Mailer;
 import hudson.tasks.Mailer.UserProperty;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
 import java.util.Map;
@@ -66,6 +68,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
             assertEquals(up.getAddress(), openid.props.get(IdProperty.email3));
     }
 
+    @Test
     public void testEmailWithAXExtensionWithAllSameEmailAttributes() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -76,6 +79,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
         _testEmailAttributes(openid.props.get(IdProperty.nick));
     }
     
+    @Test
     public void testEmailWithAXExtensionWithAllDifferentEmailAttributes() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -86,6 +90,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
         _testEmailAttributes(openid.props.get(IdProperty.nick));
     }
     
+    @Test
     public void testEmailWithAXExtensionWithAnyTwoDifferentEmailAttributes() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -96,6 +101,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
         _testEmailAttributes(openid.props.get(IdProperty.nick));
     }
     
+    @Test
     public void testEmailWithAXExtensionWithAnyTwoSameEmailAttributes() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
@@ -106,6 +112,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
         _testEmailAttributes(openid.props.get(IdProperty.nick));
     }
     
+    @Test
     public void testEmailWithAXExtensionWithOneEmailAttribute() throws Exception {
         openid = new OpenIdTestService(
                 getServiceUrl(),
