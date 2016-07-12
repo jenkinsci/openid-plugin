@@ -181,11 +181,11 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     }
 
     @Test
-	public void testProxyInformationAvailableForCreateManager()
-			throws Exception {
-		openid = new OpenIdTestService(getServiceUrl(), getProps(),
-				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
-						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+    public void testProxyInformationAvailableForCreateManager()
+            throws Exception {
+        openid = new OpenIdTestService(getServiceUrl(), getProps(),
+                Sets.newHashSet("foo", "bar"), Lists.newArrayList(
+                        SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
         jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
                 FAKE_JENKINS_PROXY_PORT);
 
@@ -197,67 +197,67 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
             // not be possible
         }
 
-		assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
-				.getProxyHostName());
-		assertEquals(FAKE_JENKINS_PROXY_PORT, HttpClientFactory
-				.getProxyProperties().getProxyPort());
-	}
+        assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
+                .getProxyHostName());
+        assertEquals(FAKE_JENKINS_PROXY_PORT, HttpClientFactory
+                .getProxyProperties().getProxyPort());
+    }
 
     @Test
-	public void testProxyInformationAvailableForDiscoverNoCredentials()
-			throws Exception {
-		openid = new OpenIdTestService(getServiceUrl(), getProps(),
-				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
-						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+    public void testProxyInformationAvailableForDiscoverNoCredentials()
+            throws Exception {
+        openid = new OpenIdTestService(getServiceUrl(), getProps(),
+                Sets.newHashSet("foo", "bar"), Lists.newArrayList(
+                        SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
 
-		jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
-				FAKE_JENKINS_PROXY_PORT);
-		try {
-			new OpenIdSsoSecurityRealm(openid.url);
-		} catch (DiscoveryException e) {
-			// This is expected since the proxy is fake. Hence, discovery will
-			// not be possible
-		}
+        jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+                FAKE_JENKINS_PROXY_PORT);
+        try {
+            new OpenIdSsoSecurityRealm(openid.url);
+        } catch (DiscoveryException e) {
+            // This is expected since the proxy is fake. Hence, discovery will
+            // not be possible
+        }
 
-		assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
-				.getProxyHostName());
-		assertEquals(FAKE_JENKINS_PROXY_PORT, HttpClientFactory
-				.getProxyProperties().getProxyPort());
-		// The openid4java ProxyProperties class returns a default value of
-		// anonymous if userName
-		// or password is null or empty string
-		assertEquals("anonymous", HttpClientFactory.getProxyProperties()
-				.getUserName());
-		assertEquals("anonymous", HttpClientFactory.getProxyProperties()
-				.getPassword());
-	}
+        assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
+                .getProxyHostName());
+        assertEquals(FAKE_JENKINS_PROXY_PORT, HttpClientFactory
+                .getProxyProperties().getProxyPort());
+        // The openid4java ProxyProperties class returns a default value of
+        // anonymous if userName
+        // or password is null or empty string
+        assertEquals("anonymous", HttpClientFactory.getProxyProperties()
+                .getUserName());
+        assertEquals("anonymous", HttpClientFactory.getProxyProperties()
+                .getPassword());
+    }
 
     @Test
-	public void testProxyInformationAvailableForDiscoverWithCredentials()
-			throws Exception {
-		openid = new OpenIdTestService(getServiceUrl(), getProps(),
-				Sets.newHashSet("foo", "bar"), Lists.newArrayList(
-						SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+    public void testProxyInformationAvailableForDiscoverWithCredentials()
+            throws Exception {
+        openid = new OpenIdTestService(getServiceUrl(), getProps(),
+                Sets.newHashSet("foo", "bar"), Lists.newArrayList(
+                        SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
 
-		jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
-				FAKE_PROXY_PORT_ALTERNATIVE, FAKE_PROXY_USER_NAME,
-				FAKE_PROXY_PASSWORD);
-		try {
-			new OpenIdSsoSecurityRealm(openid.url);
-		} catch (DiscoveryException e) {
-			// This is expected since the proxy is fake. Hence, discovery will
-			// not be possible
-		}
+        jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME,
+                FAKE_PROXY_PORT_ALTERNATIVE, FAKE_PROXY_USER_NAME,
+                FAKE_PROXY_PASSWORD);
+        try {
+            new OpenIdSsoSecurityRealm(openid.url);
+        } catch (DiscoveryException e) {
+            // This is expected since the proxy is fake. Hence, discovery will
+            // not be possible
+        }
 
-		assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
-				.getProxyHostName());
-		assertEquals(FAKE_PROXY_PORT_ALTERNATIVE, HttpClientFactory
-				.getProxyProperties().getProxyPort());
-		assertEquals(FAKE_PROXY_USER_NAME, HttpClientFactory
-				.getProxyProperties().getUserName());
-		assertEquals(FAKE_PROXY_PASSWORD, HttpClientFactory
-				.getProxyProperties().getPassword());
-	}
+        assertEquals(FAKE_PROXY_NAME, HttpClientFactory.getProxyProperties()
+                .getProxyHostName());
+        assertEquals(FAKE_PROXY_PORT_ALTERNATIVE, HttpClientFactory
+                .getProxyProperties().getProxyPort());
+        assertEquals(FAKE_PROXY_USER_NAME, HttpClientFactory
+                .getProxyProperties().getUserName());
+        assertEquals(FAKE_PROXY_PASSWORD, HttpClientFactory
+                .getProxyProperties().getPassword());
+    }
 
         public static class SsoSecurityRealmTestRule extends OpenIdTestCase.OpenIdRule {
             @Before

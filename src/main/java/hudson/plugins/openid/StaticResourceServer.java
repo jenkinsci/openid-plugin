@@ -29,7 +29,11 @@ public class StaticResourceServer implements UnprotectedRootAction {
     }
 
     // serve static resources
-    public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-        Jenkins.getInstance().getPlugin("openid").doDynamic(req,rsp);
+    public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException, IllegalStateException {
+        Jenkins jenkins = Jenkins.getInstance();
+        if(jenkins == null){
+            throw new IllegalStateException("No Jenkins instance has been found.");
+        }
+        jenkins.getPlugin("openid").doDynamic(req,rsp);
     }
 }

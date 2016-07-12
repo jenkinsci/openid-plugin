@@ -30,14 +30,14 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import hudson.model.User;
-import hudson.security.GlobalMatrixAuthorizationStrategy;
-import hudson.security.HudsonPrivateSecurityRealm;
 import jenkins.model.Jenkins;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.JenkinsRule.DummySecurityRealm;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.MockAuthorizationStrategy;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,24 +49,24 @@ import static org.junit.Assert.*;
  * @author Paul Sandoz
  */
 public class OpenIdLoginServiceTest extends OpenIdTestCase {
-    public static HudsonPrivateSecurityRealm realm;
+    public static DummySecurityRealm realm;
 
     @Rule
     public JenkinsRule jr = new LoginServiceTestRule();
 
-    @Bug(9792)
+    @Issue(9792)
     @Test
     public void testLoginWithoutReadAccess() throws Exception {
         openid = createServer();
 
         jr.jenkins.setSecurityRealm(realm);
-        User u = realm.createAccount("aliceW", "aliceW");
+        realm.loadUserByUsername("aliceW");
+        User u = User.get("aliceW");
         associateUserWithOpenId(u);
 
         // configure Jenkins to allow no access at all without login
-        GlobalMatrixAuthorizationStrategy s = new GlobalMatrixAuthorizationStrategy();
-        s.add(Jenkins.ADMINISTER,"authenticated");
-        jr.jenkins.setAuthorizationStrategy(s);
+        jr.jenkins.setAuthorizationStrategy(new MockAuthorizationStrategy().
+            grant(Jenkins.ADMINISTER).everywhere().to("authenticated"));
 
         // try to login
         login(jr.createWebClient());
@@ -76,7 +76,8 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
     public void testAssociateThenLogoutThenLogInWithOpenID() throws Exception {
         openid = createServer();
         jr.jenkins.setSecurityRealm(realm);
-        User u = realm.createAccount("aliceW", "aliceW");
+        realm.loadUserByUsername("aliceW");
+        User u = User.get("aliceW");
         associateUserWithOpenId(u);
 
         // Re-login
@@ -102,7 +103,7 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
     public void testLogInWithOpenIDAndSignUp() throws Exception {
         openid = createServer();
 
-        realm = new HudsonPrivateSecurityRealm(true);
+        realm = jr.createDummySecurityRealm();
         jr.jenkins.setSecurityRealm(realm);
 
         WebClient wc = jr.createWebClient();
@@ -173,7 +174,7 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
     public static class LoginServiceTestRule extends OpenIdTestCase.OpenIdRule {
         public void before() throws Throwable {
             super.before();
-            realm = new HudsonPrivateSecurityRealm(false, false, null);
+            realm = createDummySecurityRealm();
             jenkins.getDescriptorByType(OpenIdLoginService.GlobalConfigurationImpl.class).setEnabled(true);
         } 
     }
