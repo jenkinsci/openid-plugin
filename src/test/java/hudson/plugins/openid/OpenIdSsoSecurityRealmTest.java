@@ -73,8 +73,6 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 
         assertNotNull(top.getAnchorByHref("/logout"));
 
-        assertNotNull(top.getAnchorByHref("/user/" + userName));
-
         Authentication a = wc.executeOnServer(new Callable<Authentication>() {
             public Authentication call() throws Exception {
                 return SecurityContextHolder.getContext().getAuthentication();
@@ -87,6 +85,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 
         User u = User.get(userName);
         assertNotNull(u);
+        assertNotNull(top.getAnchorByHref("/user/" + u.getId()));
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertNotNull(p);
 

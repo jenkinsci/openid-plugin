@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.509</version>
+    <version>1.580.1</version>
   </parent>
 
   <artifactId>openid</artifactId>
@@ -16,6 +16,7 @@
     <findbugs-maven-plugin.version>3.0.1</findbugs-maven-plugin.version>
     <!--TODO: Enforce when the code becomes 100% clean-->
     <findbugs.failOnError>false</findbugs.failOnError>
+    <concurrency>1</concurrency>
   </properties>
 
   <url>http://wiki.jenkins-ci.org/display/JENKINS/OpenID+Plugin</url>
