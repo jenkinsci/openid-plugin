@@ -178,17 +178,18 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         return new OpenIdSession(getManager(),endpoint,"securityRealm/finishLogin") {
             @Override
             protected HttpResponse onSuccess(Identity id) throws IOException {
-                // logs this user in.
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        id.getEffectiveNick(), "", id.getGrantedAuthorities().toArray(new GrantedAuthority[id.getGrantedAuthorities().size()]));
-                SecurityContextHolder.getContext().setAuthentication(token);
-
-                // update the user profile.
-                User u = User.get(token.getName());
+                // Create the user if needed and update the profile.
+                User u = User.get(id.getEffectiveNick());
                 id.updateProfile(u);
                 OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
                 if(p != null)
                 	p.addIdentifier(id.getOpenId());
+
+                // Because of JENKINS-36709 we log this user in after getting it.
+                // so that we use the correct id.
+                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                        u.getId(), "", id.getGrantedAuthorities().toArray(new GrantedAuthority[id.getGrantedAuthorities().size()]));
+                SecurityContextHolder.getContext().setAuthentication(token);
 
                 return new HttpRedirect(referer);
             }

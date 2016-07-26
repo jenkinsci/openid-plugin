@@ -15,8 +15,9 @@
   <properties>
     <!--TODO: Enforce when the code becomes 100% clean-->
     <findbugs.failOnError>false</findbugs.failOnError>
-    <jenkins.version>1.509</jenkins.version>
+    <jenkins.version>1.580.1</jenkins.version>
     <java.level>6</java.level>
+    <concurrency>1</concurrency>
   </properties>
 
   <url>http://wiki.jenkins-ci.org/display/JENKINS/OpenID+Plugin</url>
