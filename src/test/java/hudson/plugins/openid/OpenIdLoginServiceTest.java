@@ -54,7 +54,7 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
     @Rule
     public JenkinsRule jr = new LoginServiceTestRule();
 
-    @Issue(9792)
+    @Issue("9792")
     @Test
     public void testLoginWithoutReadAccess() throws Exception {
         openid = createServer();
