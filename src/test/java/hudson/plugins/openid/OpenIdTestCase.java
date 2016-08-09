@@ -39,27 +39,10 @@ import static org.junit.Assert.*;
 /**
  * @author Paul Sandoz
  */
-public class OpenIdTestCase implements UnprotectedRootAction {
-    public OpenIdTestService openid;
+public class OpenIdTestCase {
 
     @Rule
-    public JenkinsRule jr = new OpenIdRule();
-
-    public String getIconFileName() {
-        return null;
-    }
-
-    public String getDisplayName() {
-        return null;
-    }
-
-    public String getUrlName() {
-        return jr.getUrlName();
-    }
-
-    String getServiceUrl() throws IOException {
-        return jr.getURL().toExternalForm() + getUrlName() + "/openid/";
-    }
+    public OpenIdRule jr = new OpenIdRule();
 
     Map<IdProperty,String> getPropsAllDifferentEmails() {
         Map<IdProperty,String> props = getProps();
@@ -111,13 +94,19 @@ public class OpenIdTestCase implements UnprotectedRootAction {
         return props;
     }
 
-    public static class OpenIdRule extends JenkinsRule {
+    public static class OpenIdRule extends JenkinsRule implements UnprotectedRootAction {
+        public OpenIdTestService openid;
+
         public void before() throws Throwable {
             super.before();
 
             // Set to null to avoid errors on association POST requests
             // set from openid4java
             jenkins.setCrumbIssuer(null);
+        }
+
+        String getServiceUrl() throws IOException {
+            return getURL().toExternalForm() + getUrlName() + "/openid/";
         } 
     }
 }
