@@ -176,7 +176,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(OpenIdTestService.AX_EXTENSION, OpenIdTestService.TEAM_EXTENSION));
 
-        _testLogin(jr.openid.props.get(IdProperty.email));
+        _testLogin(jr.openid.props.get(IdProperty.email2));
     }
 
     @Test
