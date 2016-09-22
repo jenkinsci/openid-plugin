@@ -50,6 +50,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.containsString;
 
 /**
  * @author Paul Sandoz
@@ -93,7 +94,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         assertNotNull(p);
 
         assertEquals(1, p.getIdentifiers().size());
-        assertEquals(jr.openid.getUserIdentity(), p.getIdentifiers().iterator().next());
+        assertThat(p.getIdentifiers().iterator().next(), containsString(jr.openid.getUserIdentity()));
     }
 
     private boolean isTeamAGrantedAuthority(GrantedAuthority[] gas, String team) {

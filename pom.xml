@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.11</version>
+    <version>2.15</version>
   </parent>
 
   <artifactId>openid</artifactId>
@@ -15,7 +15,7 @@
   <properties>
     <!--TODO: Enforce when the code becomes 100% clean-->
     <findbugs.failOnError>false</findbugs.failOnError>
-    <jenkins.version>1.586</jenkins.version>
+    <jenkins.version>1.609.3</jenkins.version>
     <java.level>6</java.level>
     <concurrency>1</concurrency>
   </properties>
@@ -66,21 +66,6 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>mailer</artifactId>
       <version>1.8</version>
-    </dependency>
-    <dependency> <!-- Can be removed after upgrade of parent version -->
-      <groupId>org.jenkins-ci.main</groupId>
-      <artifactId>jenkins-core</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.sonatype.sisu</groupId>
-          <artifactId>sisu-guice</artifactId>
-        </exclusion>
-      </exclusions> 
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-      <version>4.0-beta</version>
     </dependency>
   </dependencies>
 
