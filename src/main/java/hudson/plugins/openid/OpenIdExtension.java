@@ -109,14 +109,11 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws MessageException if there is a message error extending the request
      * @throws IllegalStateException if there is no Jenkins instance
      */
-    public static void extendRequest(AuthRequest authRequest) throws MessageException, IllegalStateException {
+    public static void extendRequest(AuthRequest authRequest) throws MessageException {
         FetchRequest request = FetchRequest.createFetchRequest();
-        Jenkins jenkins = Jenkins.getInstance();
-        if(jenkins == null){
-            throw new IllegalStateException("No Jenkins instance has been found.");
-        }
+        SecurityRealm sr = Jenkins.getActiveInstance().getSecurityRealm()
     	for (OpenIdExtension e : all()) {
-            if (e.isApplicable(jenkins.getSecurityRealm())) {
+            if (e.isApplicable(sr)) {
                 e.extend(authRequest);
                 e.extendFetch(request);
             }
@@ -134,13 +131,10 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws MessageException if there is a message error processing the success.
      * @throws IllegalStateException if there is no Jenkins instance
      */
-    public static void processResponse(AuthSuccess authSuccess, Identity id) throws MessageException, IllegalStateException {
-        Jenkins jenkins = Jenkins.getInstance();
-        if(jenkins == null){
-            throw new IllegalStateException("No Jenkins instance has been found.");
-        }
+    public static void processResponse(AuthSuccess authSuccess, Identity id) throws MessageException {
+        SecurityRealm sc = Jenkins.getActiveInstance().getSecurityRealm();
         for (OpenIdExtension e : all()) {
-            if (e.isApplicable(jenkins.getSecurityRealm())) {
+            if (e.isApplicable(sc)) {
                 e.process(authSuccess, id);
             }
         }

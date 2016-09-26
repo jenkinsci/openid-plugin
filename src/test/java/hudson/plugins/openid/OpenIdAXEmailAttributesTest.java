@@ -49,9 +49,6 @@ import static org.junit.Assert.*;
  */
 public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
 
-    /*@Rule
-    public OpenIdRule jr = new AXEmailRule();*/
-
     void _testEmailAttributes(String userName) throws Exception {
         WebClient wc = jr.createWebClient();
 

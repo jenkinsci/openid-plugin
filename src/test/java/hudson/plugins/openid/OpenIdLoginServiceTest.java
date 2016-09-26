@@ -55,7 +55,7 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
     @Rule
     public OpenIdRule jr = new LoginServiceTestRule();
 
-    @Issue("9792")
+    @Issue("JENKINS-9792")
     @Test
     @Ignore("Failing manually")
     public void testLoginWithoutReadAccess() throws Exception {

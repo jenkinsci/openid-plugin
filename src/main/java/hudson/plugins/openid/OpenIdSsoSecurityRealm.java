@@ -160,16 +160,12 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     /**
      * The login process starts from here.
      */
-    public HttpResponse doCommenceLogin(@QueryParameter String from) throws IOException, OpenIDException, IllegalStateException {
+    public HttpResponse doCommenceLogin(@QueryParameter String from) throws IOException, OpenIDException {
         if (from == null || !from.startsWith("/")) {
             if (Stapler.getCurrentRequest().getHeader("Referer") != null) {
                 from = Stapler.getCurrentRequest().getHeader("Referer");
             } else {
-                Jenkins jenkins = Jenkins.getInstance();
-                if(jenkins == null){
-                    throw new IllegalStateException("No Jenkins instance has been found.");
-                }
-                from = jenkins.getRootUrl();
+                from = Jenkins.getActiveInstance().getRootUrl();
             }
         }
         
