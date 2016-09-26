@@ -111,7 +111,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      */
     public static void extendRequest(AuthRequest authRequest) throws MessageException {
         FetchRequest request = FetchRequest.createFetchRequest();
-        SecurityRealm sr = Jenkins.getActiveInstance().getSecurityRealm()
+        SecurityRealm sr = Jenkins.getActiveInstance().getSecurityRealm();
     	for (OpenIdExtension e : all()) {
             if (e.isApplicable(sr)) {
                 e.extend(authRequest);
