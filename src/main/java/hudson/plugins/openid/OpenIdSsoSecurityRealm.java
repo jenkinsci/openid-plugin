@@ -165,7 +165,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             if (Stapler.getCurrentRequest().getHeader("Referer") != null) {
                 from = Stapler.getCurrentRequest().getHeader("Referer");
             } else {
-                from = Jenkins.getInstance().getRootUrl();
+                from = Jenkins.getActiveInstance().getRootUrl();
             }
         }
         

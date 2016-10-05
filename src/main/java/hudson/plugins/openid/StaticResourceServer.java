@@ -30,6 +30,6 @@ public class StaticResourceServer implements UnprotectedRootAction {
 
     // serve static resources
     public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-        Jenkins.getInstance().getPlugin("openid").doDynamic(req,rsp);
+        Jenkins.getActiveInstance().getPlugin("openid").doDynamic(req,rsp);
     }
 }

@@ -83,7 +83,7 @@ public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
 
         @Override
         public boolean isEnabled() {
-            return Jenkins.getInstance().getSecurityRealm() instanceof AbstractPasswordBasedSecurityRealm
+            return Jenkins.getActiveInstance().getSecurityRealm() instanceof AbstractPasswordBasedSecurityRealm
                     && (openIdLoginService != null && !openIdLoginService.isDisabled());
         }
 

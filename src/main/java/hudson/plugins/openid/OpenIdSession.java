@@ -25,6 +25,7 @@ package hudson.plugins.openid;
 
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.Failure;
 import hudson.model.Hudson;
 import hudson.util.HttpResponses;
@@ -81,6 +82,7 @@ public abstract class OpenIdSession {
     /**
      * Starts the login session.
      */
+    @SuppressFBWarnings(value="J2EE_STORE_OF_NON_SERIALIZABLE_OBJECT_INTO_SESSION", justification="Just for this login.")
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
         final AuthRequest authReq = manager.authenticate(endpoint, Hudson.getInstance().getRootUrl()+ finishUrl);
 

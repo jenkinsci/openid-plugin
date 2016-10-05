@@ -107,11 +107,13 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      *
      * @param authRequest the authentication request.
      * @throws MessageException if there is a message error extending the request
+     * @throws IllegalStateException if there is no Jenkins instance
      */
     public static void extendRequest(AuthRequest authRequest) throws MessageException {
         FetchRequest request = FetchRequest.createFetchRequest();
+        SecurityRealm sr = Jenkins.getActiveInstance().getSecurityRealm();
     	for (OpenIdExtension e : all()) {
-            if (e.isApplicable(Jenkins.getInstance().getSecurityRealm())) {
+            if (e.isApplicable(sr)) {
                 e.extend(authRequest);
                 e.extendFetch(request);
             }
@@ -127,10 +129,12 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @param authSuccess the authentication success.
      * @param id the identity.
      * @throws MessageException if there is a message error processing the success.
+     * @throws IllegalStateException if there is no Jenkins instance
      */
     public static void processResponse(AuthSuccess authSuccess, Identity id) throws MessageException {
+        SecurityRealm sc = Jenkins.getActiveInstance().getSecurityRealm();
         for (OpenIdExtension e : all()) {
-            if (e.isApplicable(Jenkins.getInstance().getSecurityRealm())) {
+            if (e.isApplicable(sc)) {
                 e.process(authSuccess, id);
             }
         }

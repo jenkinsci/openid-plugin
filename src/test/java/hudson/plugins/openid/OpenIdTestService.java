@@ -115,6 +115,10 @@ public class OpenIdTestService {
         manager.setOPEndpointUrl(endpointUrl);
     }
 
+   /**
+    * This method causes tests without emails to fail.
+    * TODO: find alternative way to setup user identity.
+    */
     public String getUserIdentity() {
         final String email;
         if (props.get(IdProperty.email) != null)
