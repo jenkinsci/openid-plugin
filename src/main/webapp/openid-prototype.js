@@ -115,7 +115,7 @@ var openid = {
 	 * @return {Boolean}
 	 */
     submit : function() {
-      if (this.onsubmit())
+      if (openid.onsubmit())
         $('openid_form').submit();
     },
 
