@@ -31,6 +31,7 @@ import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import hudson.util.FormValidation;
+import jenkins.security.SecurityListener;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
@@ -39,6 +40,7 @@ import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.acegisecurity.providers.anonymous.AnonymousAuthenticationToken;
+import org.acegisecurity.userdetails.UserDetails;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpRedirect;
@@ -180,13 +182,18 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
                 if(p != null)
                 	p.addIdentifier(id.getOpenId());
-
+                
+                GrantedAuthority[] grantedAuthorities = id.getGrantedAuthorities().toArray(new GrantedAuthority[0]);
+                
                 // Because of JENKINS-36709 we log this user in after getting it.
                 // so that we use the correct id.
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        u.getId(), "", id.getGrantedAuthorities().toArray(new GrantedAuthority[id.getGrantedAuthorities().size()]));
+                        u.getId(), "", grantedAuthorities);
                 SecurityContextHolder.getContext().setAuthentication(token);
-
+                
+                UserDetails userDetails = new OpenIdSsoUserDetails(u.getId(), grantedAuthorities);
+                SecurityListener.fireAuthenticated(userDetails);
+                
                 return new HttpRedirect(referer);
             }
         }.doCommenceLogin();
