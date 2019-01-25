@@ -39,8 +39,7 @@
   </scm>
   
   <properties>
-    <!--TODO: Enforce when the code becomes 100% clean-->
-    <findbugs.failOnError>false</findbugs.failOnError>
+    <maven.findbugs.failure.strict>true</maven.findbugs.failure.strict>
     <jenkins.version>2.107.3</jenkins.version>
     <java.level>8</java.level>
   </properties>
