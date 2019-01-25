@@ -18,12 +18,15 @@
 }
 
 #openid_input_area {
-	clear: both;
 	padding: 10px;
 }
 
-#openid_btns, #openid_btns br {
-	clear: both;
+#openid_btns {
+    overflow: hidden;
+}
+
+#openid_btns br {
+    clear: left;
 }
 
 #openid_highlight {

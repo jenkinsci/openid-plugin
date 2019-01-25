@@ -45,17 +45,21 @@ var openid = {
 		$('openid_input_area').innerHTML = "";
 		var i = 0;
 		// add box for each provider
+		var html = '';
 		for (id in providers_large) {
-			box = this.getBoxHTML(id, providers_large[id], (this.all_small ? 'small' : 'large'), i++);
-			openid_btns.innerHTML += box;
-		}
-		if (providers_small) {
-			openid_btns.innerHTML += '<br/>';
-			for (id in providers_small) {
-				box = this.getBoxHTML(id, providers_small[id], 'small', i++);
-				openid_btns.innerHTML += box;
+			if (providers_large.hasOwnProperty(id)) {
+				html += this.getBoxHTML(id, providers_large[id], (this.all_small ? 'small' : 'large'), i++);
 			}
 		}
+		if (providers_small) {
+			html += '<br/>';
+			for (id in providers_small) {
+				if (providers_small.hasOwnProperty(id)) {
+					html += this.getBoxHTML(id, providers_small[id], 'small', i++);
+				}
+			}
+		}
+		openid_btns.innerHTML = html;
 		$('openid_form').onsubmit = this.onsubmit;
 		var box_id = this.readCookie();
 		if (box_id) {
@@ -111,7 +115,7 @@ var openid = {
 	 * @return {Boolean}
 	 */
     submit : function() {
-      if (this.onsubmit())
+      if (openid.onsubmit())
         $('openid_form').submit();
     },
 
