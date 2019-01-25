@@ -88,7 +88,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         String effectiveId = User.CanonicalIdResolver.resolve(userName, Collections.emptyMap());
         User u = User.getById(effectiveId, false);
         assertNotNull(u);
-        assertNotNull(top.getAnchorByHref("/jenkins/user/" + u.getId().toLowerCase(Locale.ENGLISH)));
+        assertNotNull(top.getAnchorByHref("/jenkins/" + u.getUrl()));
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertNotNull(p);
 

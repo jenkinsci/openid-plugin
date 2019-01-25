@@ -1,6 +1,7 @@
 package hudson.plugins.openid;
 
 import hudson.Extension;
+import hudson.Plugin;
 import hudson.model.UnprotectedRootAction;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.StaplerRequest;
@@ -30,6 +31,10 @@ public class StaticResourceServer implements UnprotectedRootAction {
 
     // serve static resources
     public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-        Jenkins.get().getPlugin("openid").doDynamic(req,rsp);
+        Plugin openIdPlugin = Jenkins.get().getPlugin("openid");
+        if (openIdPlugin == null) {
+            throw new AssertionError("OpenID plugin (self) not installed");
+        }
+        openIdPlugin.doDynamic(req,rsp);
     }
 }
