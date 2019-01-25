@@ -5,8 +5,6 @@
 	This code is licensed under the New BSD License.
 */
 
-var providers;
-
 var openid = {
 	version : '1.3-beta1', // version constant
 	demo : false,
@@ -28,13 +26,15 @@ var openid = {
 	provider_url : null,
 	provider_id : null,
 
+	providers: {},
+
 	/**
 	 * Class constructor
 	 * 
 	 * @return {Void}
 	 */
 	init : function(input_id) {
-		providers = {};
+		var providers = this.providers;
 		Object.extend(providers, providers_large);
 		Object.extend(providers, providers_small);
 		var openid_btns = $('openid_btns');
@@ -90,7 +90,7 @@ var openid = {
 	 * @return {void}
 	 */
 	signin : function(box_id, onload) {
-		var provider = providers[box_id];
+		var provider = this.providers[box_id];
 		if (!provider) {
 			return;
 		}
