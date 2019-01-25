@@ -41,8 +41,8 @@ import org.openid4java.message.sreg.SRegResponse;
  */
 @Extension
 public class UserInfoExtension extends OpenIdExtension {
-
-    @Override 
+    
+    @Override
     public void extendFetch(FetchRequest fetch) throws MessageException {
         // AX is standardized, but OPs support multiple different Email parameters.
         // see http://blog.nerdbank.net/2009/03/how-to-pretty-much-guarantee-that-you.html
@@ -66,10 +66,9 @@ public class UserInfoExtension extends OpenIdExtension {
         sregReq.addAttribute("email", true);
         authRequest.addExtension(sregReq);
     }
-
+    
     @Override
     public void process(AuthSuccess authSuccess, Identity id) throws MessageException {
-
         String nick = null;
         String fullName = null;
         String email = null;
@@ -81,7 +80,7 @@ public class UserInfoExtension extends OpenIdExtension {
         } catch (MessageException e) {
             // ignore as this is a failure to sign sreg
         }
-
+        
         try {
             FetchResponse fr = getMessageAs(FetchResponse.class, authSuccess, AxMessage.OPENID_NS_AX);
             if (fr != null) {
@@ -92,14 +91,18 @@ public class UserInfoExtension extends OpenIdExtension {
                         fullName = first + " " + last;
                     }
                 }
-                if (email == null)
+                if (email == null) {
                     email = fr.getAttributeValue("email");
-                if (email==null)
+                }
+                if (email == null) {
                     email = fr.getAttributeValue("email2");
-                if (email==null)
+                }
+                if (email == null) {
                     email = fr.getAttributeValue("email3");
-                if (nick == null)
+                }
+                if (nick == null) {
                     nick = fr.getAttributeValue("nickName");
+                }
             }
         } catch (MessageException e) {
             // if the process doesn't contain AX information, ignore. Maybe this is a bug in openid4java?

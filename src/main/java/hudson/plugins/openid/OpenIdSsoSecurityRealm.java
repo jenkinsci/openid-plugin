@@ -27,13 +27,12 @@ import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Failure;
-import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import hudson.util.FormValidation;
 import jenkins.security.SecurityListener;
+import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
-import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
 import org.acegisecurity.BadCredentialsException;
 import org.acegisecurity.GrantedAuthority;
@@ -42,7 +41,6 @@ import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.acegisecurity.providers.anonymous.AnonymousAuthenticationToken;
 import org.acegisecurity.userdetails.UserDetails;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
@@ -55,17 +53,12 @@ import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.consumer.InMemoryNonceVerifier;
 import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
-import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.server.RealmVerifierFactory;
 import org.openid4java.util.HttpClientFactory;
 import org.openid4java.util.HttpFetcherFactory;
 import org.openid4java.util.ProxyProperties;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-
-import jenkins.model.Jenkins;
 
 /**
  * SSO based on OpenID by fixing a provider.
@@ -74,24 +67,24 @@ import jenkins.model.Jenkins;
  */
 public class OpenIdSsoSecurityRealm extends SecurityRealm {
     private /*almost final*/ transient volatile ConsumerManager manager;
-
+    
     // for example, https://login.launchpad.net/+openid
     // 
     public final String endpoint;
-
+    
     @DataBoundConstructor
     public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
         this.endpoint = endpoint;
         addProxyPropertiesToHttpClient();
     }
-
+    
     private ConsumerManager getManager() throws ConsumerException {
         if (manager != null) {
             return manager;
         }
-
+        
         synchronized (this) {
-            if (manager==null) {
+            if (manager == null) {
                 final ConsumerManager managerInitializer = createManager();
                 managerInitializer.setAssociations(new InMemoryConsumerAssociationStore());
                 managerInitializer.setNonceVerifier(new InMemoryNonceVerifier(5000));
@@ -101,18 +94,18 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         }
         return manager;
     }
-
+    
     protected ConsumerManager createManager() throws ConsumerException {
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
         ConsumerManager manager = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
-        manager.getDiscovery().setYadisResolver(resolver);        return manager;
+        manager.getDiscovery().setYadisResolver(resolver); return manager;
     }
-
+    
     protected void addProxyPropertiesToHttpClient() {
-        final Hudson instance = Hudson.getInstance();
+        Jenkins instance = Jenkins.get();
         if (instance.proxy != null) {
             ProxyProperties props = new ProxyProperties();
             props.setProxyHostName(instance.proxy.name);
@@ -127,7 +120,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             HttpClientFactory.setProxyProperties(props);
         }
     }
-
+    
     /**
      * Login begins with our {@link #doCommenceLogin(String)} method.
      */
@@ -135,53 +128,53 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     public String getLoginUrl() {
         return "securityRealm/commenceLogin";
     }
-
+    
     /**
      * Acegi has this notion that first an {@link Authentication} object is created
      * by collecting user information and then the act of authentication is done
      * later (by {@link AuthenticationManager}) to verify it. But in case of OpenID,
      * we create an {@link Authentication} only after we verified the user identity,
      * so {@link AuthenticationManager} becomes no-op.
-     * @return Created {@link SecurityComponents} 
+     * @return Created {@link SecurityComponents}
      */
     @Override
     public SecurityComponents createSecurityComponents() {
         return new SecurityComponents(
-            new AuthenticationManager() {
-                public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+                authentication -> {
                     if (authentication instanceof AnonymousAuthenticationToken) {
                         return authentication;
                     }
-                    throw new BadCredentialsException("Unexpected authentication type: "+authentication);
+                    throw new BadCredentialsException("Unexpected authentication type: " + authentication);
                 }
-            }
-            // AFAIK, OpenID doesn't define a way for us to query about other users, so no UserDetailsService
+                // AFAIK, OpenID doesn't define a way for us to query about other users, so no UserDetailsService
         );
     }
-
+    
     /**
      * The login process starts from here.
      */
     public HttpResponse doCommenceLogin(@QueryParameter String from) throws IOException, OpenIDException {
         if (from == null || !from.startsWith("/")) {
-            if (Stapler.getCurrentRequest().getHeader("Referer") != null) {
-                from = Stapler.getCurrentRequest().getHeader("Referer");
+            StaplerRequest currentRequest = Stapler.getCurrentRequest();
+            if (currentRequest.getHeader("Referer") != null) {
+                from = currentRequest.getHeader("Referer");
             } else {
-                from = Jenkins.getActiveInstance().getRootUrl();
+                from = Jenkins.get().getRootUrl();
             }
         }
         
-        final String referer = from;
+        String referer = from;
         
-        return new OpenIdSession(getManager(),endpoint,"securityRealm/finishLogin") {
+        return new OpenIdSession(getManager(), endpoint, "securityRealm/finishLogin") {
             @Override
             protected HttpResponse onSuccess(Identity id) throws IOException {
                 // Create the user if needed and update the profile.
                 User u = User.get(id.getEffectiveNick());
                 id.updateProfile(u);
                 OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
-                if(p != null)
-                	p.addIdentifier(id.getOpenId());
+                if(p != null) {
+                    p.addIdentifier(id.getOpenId());
+                }
                 
                 GrantedAuthority[] grantedAuthorities = id.getGrantedAuthorities().toArray(new GrantedAuthority[0]);
                 
@@ -198,17 +191,18 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             }
         }.doCommenceLogin();
     }
-
+    
     /**
      * This is where the user comes back to at the end of the OpenID redirect ping-pong.
      */
     public HttpResponse doFinishLogin(StaplerRequest request) throws IOException, OpenIDException {
         OpenIdSession session = OpenIdSession.getCurrent();
-        if (session==null)
+        if (session == null) {
             throw new Failure(Messages.OpenIdLoginService_SessionNotFound());
+        }
         return session.doFinishLogin(request);
     }
-
+    
     /**
      * Allow OpenId SSO Security Realms to determine the extensions that are applicable.
      * @param openIdExtension the extension.
@@ -218,22 +212,22 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     public boolean isApplicable(OpenIdExtension openIdExtension) {
         return true;
     }
-
+    
     @Extension
     public static class DescriptorImpl extends Descriptor<SecurityRealm> {
         public String getDisplayName() {
             return "OpenID SSO";
         }
-
+        
         public FormValidation doValidate(@QueryParameter String endpoint) {
             try {
                 new Discovery().discover(endpoint);
                 return FormValidation.ok("OK");
             } catch (DiscoveryException e) {
-                return FormValidation.error(e,"Invalid provider URL: "+endpoint);
+                return FormValidation.error(e, "Invalid provider URL: " + endpoint);
             }
         }
-
+        
         static {
             TeamExtensionFactory.install();
         }

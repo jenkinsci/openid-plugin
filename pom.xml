@@ -5,26 +5,21 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.15</version>
+    <version>3.33</version>
+    <relativePath />
   </parent>
 
   <artifactId>openid</artifactId>
   <version>2.4-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <properties>
-    <!--TODO: Enforce when the code becomes 100% clean-->
-    <findbugs.failOnError>false</findbugs.failOnError>
-    <jenkins.version>1.609.3</jenkins.version>
-    <java.level>6</java.level>
-    <concurrency>1</concurrency>
-  </properties>
+  <name>OpenID plugin</name>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/OpenID+Plugin</url>
 
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/OpenID+Plugin</url>
   <licenses>
     <license>
       <name>The MIT license</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <url>https://opensource.org/licenses/MIT</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -42,6 +37,25 @@
     <developerConnection>scm:git:git@github.com:jenkinsci/openid-plugin.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
+  
+  <properties>
+    <maven.findbugs.failure.strict>true</maven.findbugs.failure.strict>
+    <jenkins.version>2.107.3</jenkins.version>
+    <java.level>8</java.level>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>openid4java</artifactId>
+      <version>0.9.8.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>mailer</artifactId>
+      <version>1.21</version>
+    </dependency>
+  </dependencies>
 
   <repositories>
     <repository>
@@ -55,18 +69,4 @@
       <url>https://repo.jenkins-ci.org/public/</url>
     </pluginRepository>
   </pluginRepositories>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>openid4java</artifactId>
-      <version>0.9.8.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>mailer</artifactId>
-      <version>1.8</version>
-    </dependency>
-  </dependencies>
-
 </project>
