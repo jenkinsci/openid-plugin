@@ -25,7 +25,6 @@ package hudson.plugins.openid;
 
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
-import hudson.model.Hudson;
 import hudson.security.SecurityRealm;
 import jenkins.model.Jenkins;
 import org.openid4java.message.AuthRequest;
@@ -42,7 +41,7 @@ import org.openid4java.message.ax.FetchRequest;
  * @author Paul Sandoz
  */
 public abstract class OpenIdExtension implements ExtensionPoint {
-
+    
     /**
      * Allow Extensions to determine that they are applicable when used with specific security realms.
      * @param realm the realm.
@@ -52,7 +51,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
     public boolean isApplicable(SecurityRealm realm) {
         return !(realm instanceof OpenIdSsoSecurityRealm) || ((OpenIdSsoSecurityRealm) realm).isApplicable(this);
     }
-
+    
     /**
      * Extend the authentication request.
      * <p>
@@ -63,7 +62,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws MessageException if there is a message error extending the request
      */
     public abstract void extend(AuthRequest authRequest) throws MessageException;
-
+    
     /**
      * Process the authentication success.
      * <p>
@@ -75,8 +74,9 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws MessageException if there is a message error processing the success.
      */
     public abstract void process(AuthSuccess authSuccess, Identity id) throws MessageException;
-
-    public void extendFetch(FetchRequest request) throws MessageException{}
+    
+    public void extendFetch(FetchRequest request) throws MessageException {}
+    
     /**
      * Obtain an extended response message from an {@link AuthSuccess} instance given the class
      * and URI type of the response message.
@@ -92,14 +92,14 @@ public abstract class OpenIdExtension implements ExtensionPoint {
         MessageExtension me = authSuccess.getExtension(typeUri);
         return c.cast(me);
     }
-
+    
     /**
      * All registered extension points.
      */
     public static ExtensionList<OpenIdExtension> all() {
-        return Hudson.getInstance().getExtensionList(OpenIdExtension.class);
+        return Jenkins.get().getExtensionList(OpenIdExtension.class);
     }
-
+    
     /**
      * Extend the authentication request.
      * <p>
@@ -111,16 +111,16 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      */
     public static void extendRequest(AuthRequest authRequest) throws MessageException {
         FetchRequest request = FetchRequest.createFetchRequest();
-        SecurityRealm sr = Jenkins.getActiveInstance().getSecurityRealm();
-    	for (OpenIdExtension e : all()) {
+        SecurityRealm sr = Jenkins.get().getSecurityRealm();
+        for (OpenIdExtension e : all()) {
             if (e.isApplicable(sr)) {
                 e.extend(authRequest);
                 e.extendFetch(request);
             }
         }
-    	authRequest.addExtension(request);
+        authRequest.addExtension(request);
     }
-
+    
     /**
      * Process the authentication success.
      * <p>
@@ -132,7 +132,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws IllegalStateException if there is no Jenkins instance
      */
     public static void processResponse(AuthSuccess authSuccess, Identity id) throws MessageException {
-        SecurityRealm sc = Jenkins.getActiveInstance().getSecurityRealm();
+        SecurityRealm sc = Jenkins.get().getSecurityRealm();
         for (OpenIdExtension e : all()) {
             if (e.isApplicable(sc)) {
                 e.process(authSuccess, id);

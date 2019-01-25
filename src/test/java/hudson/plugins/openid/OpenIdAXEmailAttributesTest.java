@@ -23,54 +23,50 @@
  */
 package hudson.plugins.openid;
 
-import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import hudson.model.User;
 import hudson.plugins.openid.OpenIdTestService.IdProperty;
 import hudson.tasks.Mailer;
 import hudson.tasks.Mailer.UserProperty;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
-import java.io.IOException;
-import java.util.Map;
-
-import static hudson.plugins.openid.OpenIdTestService.*;
-import static org.junit.Assert.*;
+import static hudson.plugins.openid.OpenIdTestService.AX_EXTENSION;
+import static hudson.plugins.openid.OpenIdTestService.SREG_EXTENSION;
+import static hudson.plugins.openid.OpenIdTestService.TEAM_EXTENSION;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Nirmal Jonnalagedda
  */
 public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
-
+    
     void _testEmailAttributes(String userName) throws Exception {
         WebClient wc = jr.createWebClient();
-
+        
         OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(jr.openid.url);
         jr.jenkins.setSecurityRealm(realm);
-
+        
         HtmlPage top = wc.goTo("");
         top = top.getAnchorByText("log in").click();
         
-        User u = User.get(userName);
+        User u = User.getById(userName, true);
         UserProperty up = u.getProperty(Mailer.UserProperty.class);
         
         assertTrue(up.hasExplicitlyConfiguredAddress());
         
-        if (jr.openid.props.get(IdProperty.email) != null)
+        if (jr.openid.props.get(IdProperty.email) != null) {
             assertEquals(up.getAddress(), jr.openid.props.get(IdProperty.email));
-        else if (jr.openid.props.get(IdProperty.email2) != null)
+        } else if (jr.openid.props.get(IdProperty.email2) != null) {
             assertEquals(up.getAddress(), jr.openid.props.get(IdProperty.email2));
-        else
+        } else {
             assertEquals(up.getAddress(), jr.openid.props.get(IdProperty.email3));
+        }
     }
-
+    
     @Test
     public void testEmailWithAXExtensionWithAllSameEmailAttributes() throws Exception {
         jr.openid = new OpenIdTestService(
@@ -89,7 +85,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsAllDifferentEmails(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-
+        
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
     
@@ -100,7 +96,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsWithAnyTwoDifferentEmails(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-
+        
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
     
@@ -111,7 +107,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsWithAnyTwoSameEmails(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-
+        
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
     
@@ -122,7 +118,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsWithOneEmail(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-
+        
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
 }
