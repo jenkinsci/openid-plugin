@@ -30,6 +30,8 @@ import hudson.ProxyConfiguration;
 import hudson.model.User;
 import hudson.plugins.openid.OpenIdTestService.IdProperty;
 
+import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -77,19 +79,16 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 
         assertNotNull(top.getAnchorByHref("/jenkins/logout"));
 
-        Authentication a = wc.executeOnServer(new Callable<Authentication>() {
-            public Authentication call() throws Exception {
-                return SecurityContextHolder.getContext().getAuthentication();
-            }
-        });
+        Authentication a = wc.executeOnServer(() -> SecurityContextHolder.getContext().getAuthentication());
         assertTrue(a instanceof UsernamePasswordAuthenticationToken);
         for (String team : jr.openid.teams) {
             assertTrue(isTeamAGrantedAuthority(a.getAuthorities(), team));
         }
 
-        User u = User.get(userName);
+        String effectiveId = User.CanonicalIdResolver.resolve(userName, Collections.emptyMap());
+        User u = User.getById(effectiveId, false);
         assertNotNull(u);
-        assertNotNull(top.getAnchorByHref("/jenkins/user/" + u.getId()));
+        assertNotNull(top.getAnchorByHref("/jenkins/user/" + u.getId().toLowerCase(Locale.ENGLISH)));
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertNotNull(p);
 
@@ -99,7 +98,9 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 
     private boolean isTeamAGrantedAuthority(GrantedAuthority[] gas, String team) {
         for (GrantedAuthority ga : gas) {
-            if (team.equals(ga.getAuthority())) return true;
+            if (team.equals(ga.getAuthority())) {
+                return true;
+            }
         }
 
         return false;

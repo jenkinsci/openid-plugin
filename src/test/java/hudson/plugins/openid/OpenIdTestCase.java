@@ -26,26 +26,23 @@ package hudson.plugins.openid;
 import com.google.common.collect.Maps;
 import hudson.model.UnprotectedRootAction;
 import org.junit.Rule;
-import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static hudson.plugins.openid.OpenIdTestService.*;
-import static org.junit.Assert.*;
+import static hudson.plugins.openid.OpenIdTestService.IdProperty;
 
 /**
  * @author Paul Sandoz
  */
 public class OpenIdTestCase {
-
+    
     @Rule
     public OpenIdRule jr = new OpenIdRule();
-
-    Map<IdProperty,String> getPropsAllDifferentEmails() {
-        Map<IdProperty,String> props = getProps();
+    
+    Map<IdProperty, String> getPropsAllDifferentEmails() {
+        Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
         props.put(IdProperty.email, "alice.wonder@Net");
         props.put(IdProperty.email2, "alice@Net");
@@ -53,38 +50,38 @@ public class OpenIdTestCase {
         return props;
     }
     
-    Map<IdProperty,String> getPropsAllSameEmails() {
-        Map<IdProperty,String> props = getProps();
+    Map<IdProperty, String> getPropsAllSameEmails() {
+        Map<IdProperty, String> props = getProps();
         props.put(IdProperty.email2, "alice@Net");
         props.put(IdProperty.email3, "alice@Net");
         return props;
     }
     
-    Map<IdProperty,String> getPropsWithAnyTwoDifferentEmails() {
-        Map<IdProperty,String> props = getProps();
+    Map<IdProperty, String> getPropsWithAnyTwoDifferentEmails() {
+        Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
         props.put(IdProperty.email2, "alice.Wonderland@Net");
         props.put(IdProperty.email3, "alice@Net");
         return props;
     }
     
-    Map<IdProperty,String> getPropsWithAnyTwoSameEmails() {
-        Map<IdProperty,String> props = getProps();
+    Map<IdProperty, String> getPropsWithAnyTwoSameEmails() {
+        Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
         props.put(IdProperty.email, "alice.wonder@Net");
         props.put(IdProperty.email3, "alice@Net");
         return props;
     }
     
-    Map<IdProperty,String> getPropsWithOneEmail() {
-        Map<IdProperty,String> props = getProps();
+    Map<IdProperty, String> getPropsWithOneEmail() {
+        Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
         props.put(IdProperty.email2, "alice.Wonderland@Net");
         return props;
     }
-
-    Map<IdProperty,String> getProps() {
-        Map<IdProperty,String> props = Maps.newEnumMap(IdProperty.class);
+    
+    Map<IdProperty, String> getProps() {
+        Map<IdProperty, String> props = Maps.newEnumMap(IdProperty.class);
         props.put(IdProperty.email, "alice@Net");
         props.put(IdProperty.nick, "aliceW");
         props.put(IdProperty.fullName, "Alice Wonderland");
@@ -93,20 +90,20 @@ public class OpenIdTestCase {
         props.put(IdProperty.derivedFullName, "alice wonderland");
         return props;
     }
-
+    
     public static class OpenIdRule extends JenkinsRule implements UnprotectedRootAction {
         public OpenIdTestService openid;
-
+        
         public void before() throws Throwable {
             super.before();
-
+            
             // Set to null to avoid errors on association POST requests
             // set from openid4java
             jenkins.setCrumbIssuer(null);
         }
-
+        
         String getServiceUrl() throws IOException {
             return getURL().toExternalForm() + getUrlName() + "/openid/";
-        } 
+        }
     }
 }
