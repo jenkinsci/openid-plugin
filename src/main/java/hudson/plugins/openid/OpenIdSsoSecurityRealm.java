@@ -46,6 +46,7 @@ import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
@@ -219,7 +220,12 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
             return "OpenID SSO";
         }
         
-        public FormValidation doValidate(@QueryParameter String endpoint) {
+        @RequirePOST
+        public FormValidation doValidate(@QueryParameter String endpoint) throws Exception {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                // require admin to test
+                return FormValidation.ok();
+            }
             try {
                 new Discovery().discover(endpoint);
                 return FormValidation.ok("OK");
