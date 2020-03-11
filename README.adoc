@@ -9,7 +9,7 @@ more information.
 
 [.aui-icon .aui-icon-small .aui-iconfont-error .confluence-information-macro-icon]##
 
-The current version of this plugin may not be safe to use. Please review
+The previous versions of this plugin may not be safe to use. Please review
 the following warnings before use:
 
 * https://jenkins.io/security/advisory/2019-04-03/#SECURITY-1084[CSRF
@@ -146,6 +146,12 @@ which also supports Google Apps domain restriction.
 
 [[OpenIDplugin-ReleaseHistory]]
 == Release History
+
+[[OpenIDplugin-Version2.4(Mar11,2020)]]
+=== Version 2.4 (March 11, 2020)
+
+* https://issues.jenkins-ci.org/browse/SECURITY-1084[SECURITY-1084] Fixed
+missing permission check and CSRF protection (https://jenkins.io/security/advisory/2019-04-03/#SECURITY-1084)
 
 [[OpenIDplugin-Version2.3(Jan25,2019)]]
 === Version 2.3 (Jan 25, 2019)
