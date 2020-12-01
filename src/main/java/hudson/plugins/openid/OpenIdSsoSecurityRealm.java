@@ -61,6 +61,7 @@ import org.openid4java.util.HttpFetcherFactory;
 import org.openid4java.util.ProxyProperties;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -187,7 +188,15 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                             SecurityRealm.AUTHENTICATED_AUTHORITY
                     };
                 } else {
-                    grantedAuthorities = grantedAuthoritiesList.toArray(new GrantedAuthority[0]);
+                    List<GrantedAuthority> grantedAuthorityWithTextualExpression = new ArrayList<>(grantedAuthoritiesList.size());
+                    for (GrantedAuthority grantedAuthority : grantedAuthoritiesList) {
+                        String textualExpressionOfGrantedAuthority = grantedAuthority.getAuthority();
+                        if (textualExpressionOfGrantedAuthority == null || textualExpressionOfGrantedAuthority.isEmpty()) {
+                            continue;
+                        }
+                        grantedAuthorityWithTextualExpression.add(grantedAuthority);
+                    }
+                    grantedAuthorities = grantedAuthorityWithTextualExpression.toArray(new GrantedAuthority[0]);
                 }
                 
                 // Because of JENKINS-36709 we log this user in after getting it.
