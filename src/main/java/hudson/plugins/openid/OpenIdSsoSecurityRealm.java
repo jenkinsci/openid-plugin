@@ -141,7 +141,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     @Override
     public SecurityComponents createSecurityComponents() {
         return new SecurityComponents(
-                authentication -> {
+                (org.springframework.security.authentication.AuthenticationManager) authentication -> {
                     if (authentication instanceof AnonymousAuthenticationToken) {
                         return authentication;
                     }
