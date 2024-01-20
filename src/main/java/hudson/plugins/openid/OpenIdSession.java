@@ -54,17 +54,17 @@ public abstract class OpenIdSession {
     private final ConsumerManager manager;
     private final DiscoveryInformation endpoint;
     private final String finishUrl;
-    
+
     public OpenIdSession(ConsumerManager manager, DiscoveryInformation endpoint, String finishUrl) {
         this.manager = manager;
         this.endpoint = endpoint;
         this.finishUrl = finishUrl;
     }
-    
+
     public OpenIdSession(ConsumerManager manager, String openid, String finishUrl) throws OpenIDException {
         this.manager = manager;
         this.finishUrl = finishUrl;
-        
+
         try {
             List discoveries = manager.discover(openid);
             endpoint = manager.associate(discoveries);
@@ -72,24 +72,25 @@ public abstract class OpenIdSession {
             throw new DiscoveryException("Failed to discover OpenID: " + openid, e.getErrorCode(), e);
         }
     }
-    
+
     /**
      * Starts the login session.
      */
-    @SuppressFBWarnings(value = "J2EE_STORE_OF_NON_SERIALIZABLE_OBJECT_INTO_SESSION", justification = "Just for this login.")
+    @SuppressFBWarnings(value = "J2EE_STORE_OF_NON_SERIALIZABLE_OBJECT_INTO_SESSION",
+                        justification = "Just for this login.")
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
         AuthRequest authReq = manager.authenticate(endpoint, Jenkins.get().getRootUrl() + finishUrl);
-        
+
         OpenIdExtension.extendRequest(authReq);
-        
+
         String url = authReq.getDestinationUrl(true);
-        
+
         // remember this in the session
         Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME, this);
-        
+
         return new HttpRedirect(url);
     }
-    
+
     /**
      * When the identity provider is done with its thing, the user comes back here.
      */
@@ -97,7 +98,7 @@ public abstract class OpenIdSession {
         // extract the parameters from the authentication process
         // (which comes in as a HTTP extend from the OpenID provider)
         ParameterList responseList = new ParameterList(request.getParameterMap());
-        
+
         // extract the receiving URL from the HTTP extend
         // Do not use extend.getRequestURL(), since reverse proxies might not be correctly set up
         String receivingURL = Jenkins.get().getRootUrl() + finishUrl;
@@ -105,16 +106,16 @@ public abstract class OpenIdSession {
         if (queryString != null && queryString.length() > 0) {
             receivingURL += '?' + request.getQueryString();
         }
-        
+
         // verify the process
         VerificationResult verification = manager.verify(receivingURL, responseList, endpoint);
-        
+
         // examine the verification result and extract the verified identifier
         Identifier verified = verification.getVerifiedId();
         if (verified == null) {
             throw new Failure("Failed to login: " + verification.getStatusMsg());
         }
-        
+
         Message authResponse = verification.getAuthResponse();
         if (authResponse instanceof AuthSuccess) {
             AuthSuccess authSuccess = (AuthSuccess) authResponse;
@@ -123,19 +124,19 @@ public abstract class OpenIdSession {
             throw new Failure("Failed to login. Authentication failed with the following response: " + authResponse);
         }
     }
-    
+
     protected abstract HttpResponse onSuccess(Identity identity) throws IOException;
-    
+
     /**
      * Gets the {@link OpenIdSession} associated with HTTP session in the current extend.
      */
     public static OpenIdSession getCurrent() {
         return (OpenIdSession) Stapler.getCurrentRequest().getSession().getAttribute(SESSION_NAME);
     }
-    
+
     static {
         TeamExtensionFactory.install();
     }
-    
+
     private static final String SESSION_NAME = OpenIdSession.class.getName();
 }

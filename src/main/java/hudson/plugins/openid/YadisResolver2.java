@@ -18,11 +18,11 @@ class YadisResolver2 extends YadisResolver {
     public YadisResolver2(HttpFetcher httpFetcher) {
         super(httpFetcher);
     }
-    
+
     public YadisResolver2(HttpFetcherFactory httpFetcherFactory) {
         super(httpFetcherFactory);
     }
-    
+
     /**
      * Improve the error diagnosis by reporting which URL had failed. openid4java as of 0.9.4 does not do that.
      */

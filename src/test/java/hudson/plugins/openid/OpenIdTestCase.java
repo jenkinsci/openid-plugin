@@ -37,10 +37,10 @@ import static hudson.plugins.openid.OpenIdTestService.IdProperty;
  * @author Paul Sandoz
  */
 public class OpenIdTestCase {
-    
+
     @Rule
     public OpenIdRule jr = new OpenIdRule();
-    
+
     Map<IdProperty, String> getPropsAllDifferentEmails() {
         Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
@@ -49,14 +49,14 @@ public class OpenIdTestCase {
         props.put(IdProperty.email3, "alice.wonderland@Net");
         return props;
     }
-    
+
     Map<IdProperty, String> getPropsAllSameEmails() {
         Map<IdProperty, String> props = getProps();
         props.put(IdProperty.email2, "alice@Net");
         props.put(IdProperty.email3, "alice@Net");
         return props;
     }
-    
+
     Map<IdProperty, String> getPropsWithAnyTwoDifferentEmails() {
         Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
@@ -64,7 +64,7 @@ public class OpenIdTestCase {
         props.put(IdProperty.email3, "alice@Net");
         return props;
     }
-    
+
     Map<IdProperty, String> getPropsWithAnyTwoSameEmails() {
         Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
@@ -72,14 +72,14 @@ public class OpenIdTestCase {
         props.put(IdProperty.email3, "alice@Net");
         return props;
     }
-    
+
     Map<IdProperty, String> getPropsWithOneEmail() {
         Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.email);
         props.put(IdProperty.email2, "alice.Wonderland@Net");
         return props;
     }
-    
+
     Map<IdProperty, String> getProps() {
         Map<IdProperty, String> props = Maps.newEnumMap(IdProperty.class);
         props.put(IdProperty.email, "alice@Net");
@@ -90,18 +90,18 @@ public class OpenIdTestCase {
         props.put(IdProperty.derivedFullName, "alice wonderland");
         return props;
     }
-    
+
     public static class OpenIdRule extends JenkinsRule implements UnprotectedRootAction {
         public OpenIdTestService openid;
-        
+
         public void before() throws Throwable {
             super.before();
-            
+
             // Set to null to avoid errors on association POST requests
             // set from openid4java
             jenkins.setCrumbIssuer(null);
         }
-        
+
         String getServiceUrl() throws IOException {
             return getURL().toExternalForm() + getUrlName() + "/openid/";
         }

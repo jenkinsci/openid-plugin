@@ -62,9 +62,9 @@ public class OpenIdLoginService extends FederatedLoginService {
     @Inject
     private transient Jenkins jenkins;
     private final ConsumerManager manager;
-    
+
     private static boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName() + ".disabled");
-    
+
     public OpenIdLoginService() {
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
@@ -73,14 +73,14 @@ public class OpenIdLoginService extends FederatedLoginService {
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
         manager.getDiscovery().setYadisResolver(resolver);
     }
-    
+
     public boolean isDisabled() {
         return disabled || !jenkins.getDescriptorByType(GlobalConfigurationImpl.class).isEnabled()
                 || jenkins.getSecurityRealm() instanceof OpenIdSsoSecurityRealm;
     }
-    
+
     //TODO: Such usage of static fields is a bad practice in any case.
-    
+
     /**
      * Globally sets the disabled flag on {@link OpenIdLoginService} instances.
      * @param isDisabled Flag to be set
@@ -90,7 +90,7 @@ public class OpenIdLoginService extends FederatedLoginService {
     public void setDisabled(boolean isDisabled) {
         setDisabledGlobal(isDisabled);
     }
-    
+
     /**
      * Globally sets the disabled flag on {@link OpenIdLoginService} instances.
      * @param isDisabled Flag to be set
@@ -99,16 +99,16 @@ public class OpenIdLoginService extends FederatedLoginService {
     public static void setDisabledGlobal(boolean isDisabled) {
         disabled = isDisabled;
     }
-    
+
     @Override
     public String getUrlName() {
         return "openid";
     }
-    
+
     public Class<? extends FederatedLoginServiceUserProperty> getUserPropertyClass() {
         return OpenIdUserProperty.class;
     }
-    
+
     /**
      * Commence a login.
      */
@@ -124,19 +124,19 @@ public class OpenIdLoginService extends FederatedLoginService {
         if (openid == null) {
             openid = openid_identifier;
         }
-        
+
         return new OpenIdSession(manager, openid, getFinishUrl()) {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 IdentityImpl id = new IdentityImpl(identity);
                 User u = id.signin();
                 id.id.updateProfile(u);
-                
+
                 return HttpResponses.redirectToContextRoot();
             }
         }.doCommenceLogin();
     }
-    
+
     private String getFinishUrl() {
         StaplerRequest req = Stapler.getCurrentRequest();
         String contextPath = req.getContextPath();
@@ -148,7 +148,7 @@ public class OpenIdLoginService extends FederatedLoginService {
                     + "/federatedLoginService/openid/finish";
         }
     }
-    
+
     public HttpResponse doFinish(StaplerRequest request) throws IOException, OpenIDException {
         if (isDisabled()) {
             return HttpResponses.notFound();
@@ -159,7 +159,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         }
         return session.doFinishLogin(request);
     }
-    
+
     public HttpResponse doStartAssociate(@QueryParameter String openid,
                                          @QueryParameter String openid_identifier)  throws OpenIDException, IOException {
         if (isDisabled()) {
@@ -180,45 +180,45 @@ public class OpenIdLoginService extends FederatedLoginService {
             }
         }.doCommenceLogin();
     }
-    
+
     public class IdentityImpl extends FederatedLoginService.FederatedIdentity {
         private final Identity id;
-        
+
         public IdentityImpl(Identity id) {
             this.id = id;
         }
-        
+
         @Override
         public String getIdentifier() {
             return id.getOpenId();
         }
-        
+
         @Override
         public String getNickname() {
             return id.getEffectiveNick();
         }
-        
+
         @Override
         public String getFullName() {
             return id.getFullName();
         }
-        
+
         @Override
         public String getEmailAddress() {
             return id.getEmail();
         }
-        
+
         @Override
         public String getPronoun() {
             return "OpenID";
         }
     }
-    
+
     @Extension
     public static class GlobalConfigurationImpl extends GlobalConfiguration {
-        
+
         private boolean enabled;
-        
+
         public GlobalConfigurationImpl() {
             super();
             if (getConfigFile().exists()) {
@@ -231,27 +231,27 @@ public class OpenIdLoginService extends FederatedLoginService {
                 }
             }
         }
-        
+
         // Used by Jelly
         public boolean isHidden() {
             return disabled;
         }
-        
+
         public boolean isEnabled() {
             return enabled && !disabled;
         }
-        
+
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
             save();
         }
-        
+
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) {
             req.bindJSON(this, json);
             return true;
         }
-        
+
         @Override
         public GlobalConfigurationCategory getCategory() {
             return GlobalConfigurationCategory.get(GlobalConfigurationCategory.Security.class);

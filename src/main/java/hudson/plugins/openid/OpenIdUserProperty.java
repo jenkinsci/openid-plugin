@@ -49,7 +49,7 @@ public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
     public OpenIdUserProperty(Set<String> identifiers) {
         super(unencrypt(fixNull(identifiers)));
     }
-    
+
     /**
      * Reverse the effect of {@link #getProtectedOpenIDs()}.
      */
@@ -60,7 +60,7 @@ public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
         }
         return r;
     }
-    
+
     public List<Secret> getProtectedOpenIDs() {
         List<Secret> r = new ArrayList<>();
         for (String id : getIdentifiers()) {
@@ -68,24 +68,24 @@ public class OpenIdUserProperty extends FederatedLoginServiceUserProperty {
         }
         return r;
     }
-    
+
     @Extension
     public static class DescriptorImpl extends UserPropertyDescriptor {
-        
+
         @Inject
         private OpenIdLoginService openIdLoginService;
-        
+
         @Override
         public UserProperty newInstance(User user) {
             return new OpenIdUserProperty(Collections.emptySet());
         }
-        
+
         @Override
         public boolean isEnabled() {
             return Jenkins.get().getSecurityRealm() instanceof AbstractPasswordBasedSecurityRealm
                     && (openIdLoginService != null && !openIdLoginService.isDisabled());
         }
-        
+
         @Override
         public String getDisplayName() {
             return "OpenID";
