@@ -23,10 +23,10 @@
  */
 package hudson.plugins.openid;
 
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.ElementNotFoundException;
+import org.htmlunit.html.HtmlElement;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlPage;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import hudson.model.User;
@@ -119,13 +119,13 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
         HtmlPage login = wc.goTo("federatedLoginService/openid/login?from=/");
         login.getDocumentElement().getOneHtmlElementByAttribute("a", "title", "log in with OpenID").click();
         HtmlForm loginForm = getFormById(login, "openid_form");
-        loginForm.getInputByName("openid").setValueAttribute(jr.openid.url);
+        loginForm.getInputByName("openid").setValue(jr.openid.url);
         HtmlPage signUp = ((HtmlElement) loginForm.getFirstByXPath("//input[@type='submit']")).click();
         
         // Sign up user
         HtmlForm signUpForm = getFormByAction(signUp, "/securityRealm/createAccountWithFederatedIdentity");
-        signUpForm.getInputByName("password1").setValueAttribute("x");
-        signUpForm.getInputByName("password2").setValueAttribute("x");
+        signUpForm.getInputByName("password1").setValue("x");
+        signUpForm.getInputByName("password2").setValue("x");
         HtmlPage loggedIn = jr.submit(signUpForm);
         
         assertNotNull(loggedIn.getAnchorByHref("/logout"));
@@ -152,7 +152,7 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
         HtmlPage login = wc.goTo("federatedLoginService/openid/login?from=/");
         login.getDocumentElement().getOneHtmlElementByAttribute("a", "title", "log in with OpenID").click();
         HtmlForm loginForm = getFormById(login, "openid_form");
-        loginForm.getInputByName("openid").setValueAttribute(jr.openid.url);
+        loginForm.getInputByName("openid").setValue(jr.openid.url);
         //HtmlPage loggedIn = ((HtmlElement)loginForm.getFirstByXPath("//input[@type='submit']")).click();
         HtmlPage loggedIn = jr.submit(loginForm);
         
