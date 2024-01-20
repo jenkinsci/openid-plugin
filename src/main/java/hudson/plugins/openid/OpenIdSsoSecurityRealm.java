@@ -140,7 +140,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      */
     @Override
     public SecurityComponents createSecurityComponents() {
-        return new SecurityComponents(
+        return new SecurityComponents((org.acegisecurity.AuthenticationManager)
                 authentication -> {
                     if (authentication instanceof AnonymousAuthenticationToken) {
                         return authentication;
