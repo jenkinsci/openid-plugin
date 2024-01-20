@@ -160,10 +160,18 @@ public class OpenIdLoginService extends FederatedLoginService {
         return session.doFinishLogin(request);
     }
     
-    public HttpResponse doStartAssociate(@QueryParameter String openid) throws OpenIDException, IOException {
+    public HttpResponse doStartAssociate(@QueryParameter String openid,
+                                         @QueryParameter String openid_identifier)  throws OpenIDException, IOException {
         if (isDisabled()) {
             return HttpResponses.notFound();
         }
+
+        // if the script doesn't work, it'll submit 'openid_identifier'
+        // <INPUT type=text NAME=openid/> is programmatically constructed
+        if (openid == null) {
+            openid = openid_identifier;
+        }
+
         return new OpenIdSession(manager, openid, getFinishUrl()) {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
