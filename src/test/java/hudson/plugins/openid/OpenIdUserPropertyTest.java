@@ -23,7 +23,7 @@
  */
 package hudson.plugins.openid;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlPage;
 import hudson.model.User;
 import hudson.security.HudsonPrivateSecurityRealm;
 import org.jvnet.hudson.test.HudsonTestCase;
