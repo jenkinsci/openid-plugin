@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.33</version>
+    <version>4.66</version>
     <relativePath />
   </parent>
 
@@ -33,15 +33,15 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/openid-plugin.git</connection>
+    <connection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/openid-plugin.git</developerConnection>
     <tag>openid-2.4</tag>
   </scm>
-  
+
   <properties>
     <maven.findbugs.failure.strict>true</maven.findbugs.failure.strict>
-    <jenkins.version>2.107.3</jenkins.version>
-    <java.level>8</java.level>
+    <jenkins.version>2.410</jenkins.version>
+    <revision>2.39.3</revision>
   </properties>
 
   <dependencies>
@@ -49,6 +49,18 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>openid4java</artifactId>
       <version>0.9.8.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>junit</artifactId>
+      <version>1119.1121.vc43d0fc45561</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>script-security</artifactId>
+      <version>1175.v4b_d517d6db_f0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
