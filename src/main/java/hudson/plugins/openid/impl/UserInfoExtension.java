@@ -41,7 +41,7 @@ import org.openid4java.message.sreg.SRegResponse;
  */
 @Extension
 public class UserInfoExtension extends OpenIdExtension {
-    
+
     @Override
     public void extendFetch(FetchRequest fetch) throws MessageException {
         // AX is standardized, but OPs support multiple different Email parameters.
@@ -55,7 +55,7 @@ public class UserInfoExtension extends OpenIdExtension {
         fetch.addAttribute("ff", "http://axschema.org/namePerson", false);
         fetch.addAttribute("img", "http://axschema.org/media/image/default/", false);
     }
-    
+
     @Override
     public void extend(AuthRequest authRequest) throws MessageException {
         // extend some user information
@@ -66,7 +66,7 @@ public class UserInfoExtension extends OpenIdExtension {
         sregReq.addAttribute("email", true);
         authRequest.addExtension(sregReq);
     }
-    
+
     @Override
     public void process(AuthSuccess authSuccess, Identity id) throws MessageException {
         String nick = null;
@@ -80,7 +80,7 @@ public class UserInfoExtension extends OpenIdExtension {
         } catch (MessageException e) {
             // ignore as this is a failure to sign sreg
         }
-        
+
         try {
             FetchResponse fr = getMessageAs(FetchResponse.class, authSuccess, AxMessage.OPENID_NS_AX);
             if (fr != null) {

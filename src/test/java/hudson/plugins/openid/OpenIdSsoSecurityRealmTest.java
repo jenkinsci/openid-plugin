@@ -266,6 +266,6 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
             super.before();
 
             HttpClientFactory.setProxyProperties(null);
-        } 
+        }
     }
 }

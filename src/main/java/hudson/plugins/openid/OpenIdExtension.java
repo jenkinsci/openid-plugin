@@ -41,7 +41,7 @@ import org.openid4java.message.ax.FetchRequest;
  * @author Paul Sandoz
  */
 public abstract class OpenIdExtension implements ExtensionPoint {
-    
+
     /**
      * Allow Extensions to determine that they are applicable when used with specific security realms.
      * @param realm the realm.
@@ -51,7 +51,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
     public boolean isApplicable(SecurityRealm realm) {
         return !(realm instanceof OpenIdSsoSecurityRealm) || ((OpenIdSsoSecurityRealm) realm).isApplicable(this);
     }
-    
+
     /**
      * Extend the authentication request.
      * <p>
@@ -62,7 +62,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws MessageException if there is a message error extending the request
      */
     public abstract void extend(AuthRequest authRequest) throws MessageException;
-    
+
     /**
      * Process the authentication success.
      * <p>
@@ -74,9 +74,9 @@ public abstract class OpenIdExtension implements ExtensionPoint {
      * @throws MessageException if there is a message error processing the success.
      */
     public abstract void process(AuthSuccess authSuccess, Identity id) throws MessageException;
-    
+
     public void extendFetch(FetchRequest request) throws MessageException {}
-    
+
     /**
      * Obtain an extended response message from an {@link AuthSuccess} instance given the class
      * and URI type of the response message.
@@ -92,14 +92,14 @@ public abstract class OpenIdExtension implements ExtensionPoint {
         MessageExtension me = authSuccess.getExtension(typeUri);
         return c.cast(me);
     }
-    
+
     /**
      * All registered extension points.
      */
     public static ExtensionList<OpenIdExtension> all() {
         return Jenkins.get().getExtensionList(OpenIdExtension.class);
     }
-    
+
     /**
      * Extend the authentication request.
      * <p>
@@ -120,7 +120,7 @@ public abstract class OpenIdExtension implements ExtensionPoint {
         }
         authRequest.addExtension(request);
     }
-    
+
     /**
      * Process the authentication success.
      * <p>

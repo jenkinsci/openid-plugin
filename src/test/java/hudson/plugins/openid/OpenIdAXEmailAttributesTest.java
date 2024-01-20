@@ -43,21 +43,21 @@ import static org.junit.Assert.assertTrue;
  * @author Nirmal Jonnalagedda
  */
 public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
-    
+
     void _testEmailAttributes(String userName) throws Exception {
         WebClient wc = jr.createWebClient();
-        
+
         OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(jr.openid.url);
         jr.jenkins.setSecurityRealm(realm);
-        
+
         HtmlPage top = wc.goTo("");
         top = top.getAnchorByText("log in").click();
-        
+
         User u = User.getById(userName, true);
         UserProperty up = u.getProperty(Mailer.UserProperty.class);
-        
+
         assertTrue(up.hasExplicitlyConfiguredAddress());
-        
+
         if (jr.openid.props.get(IdProperty.email) != null) {
             assertEquals(up.getAddress(), jr.openid.props.get(IdProperty.email));
         } else if (jr.openid.props.get(IdProperty.email2) != null) {
@@ -66,7 +66,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
             assertEquals(up.getAddress(), jr.openid.props.get(IdProperty.email3));
         }
     }
-    
+
     @Test
     public void testEmailWithAXExtensionWithAllSameEmailAttributes() throws Exception {
         jr.openid = new OpenIdTestService(
@@ -74,10 +74,10 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsAllSameEmails(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-        
+
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
-    
+
     @Test
     public void testEmailWithAXExtensionWithAllDifferentEmailAttributes() throws Exception {
         jr.openid = new OpenIdTestService(
@@ -85,10 +85,10 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsAllDifferentEmails(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-        
+
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
-    
+
     @Test
     public void testEmailWithAXExtensionWithAnyTwoDifferentEmailAttributes() throws Exception {
         jr.openid = new OpenIdTestService(
@@ -96,10 +96,10 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsWithAnyTwoDifferentEmails(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-        
+
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
-    
+
     @Test
     public void testEmailWithAXExtensionWithAnyTwoSameEmailAttributes() throws Exception {
         jr.openid = new OpenIdTestService(
@@ -107,10 +107,10 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsWithAnyTwoSameEmails(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-        
+
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
-    
+
     @Test
     public void testEmailWithAXExtensionWithOneEmailAttribute() throws Exception {
         jr.openid = new OpenIdTestService(
@@ -118,7 +118,7 @@ public class OpenIdAXEmailAttributesTest extends OpenIdTestCase {
                 getPropsWithOneEmail(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-        
+
         _testEmailAttributes(jr.openid.props.get(IdProperty.nick));
     }
 }

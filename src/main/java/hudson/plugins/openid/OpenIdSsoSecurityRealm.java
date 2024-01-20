@@ -68,22 +68,22 @@ import java.io.IOException;
  */
 public class OpenIdSsoSecurityRealm extends SecurityRealm {
     private /*almost final*/ transient volatile ConsumerManager manager;
-    
+
     // for example, https://login.launchpad.net/+openid
-    // 
+    //
     public final String endpoint;
-    
+
     @DataBoundConstructor
     public OpenIdSsoSecurityRealm(String endpoint) throws IOException, OpenIDException {
         this.endpoint = endpoint;
         addProxyPropertiesToHttpClient();
     }
-    
+
     private ConsumerManager getManager() throws ConsumerException {
         if (manager != null) {
             return manager;
         }
-        
+
         synchronized (this) {
             if (manager == null) {
                 final ConsumerManager managerInitializer = createManager();
@@ -95,7 +95,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         }
         return manager;
     }
-    
+
     protected ConsumerManager createManager() throws ConsumerException {
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
@@ -104,24 +104,24 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
         manager.getDiscovery().setYadisResolver(resolver); return manager;
     }
-    
+
     protected void addProxyPropertiesToHttpClient() {
         Jenkins instance = Jenkins.get();
         if (instance.proxy != null) {
             ProxyProperties props = new ProxyProperties();
             props.setProxyHostName(instance.proxy.name);
             props.setProxyPort(instance.proxy.port);
-            // Do not populate userName and password if userName 
-            // has not been specified. 
+            // Do not populate userName and password if userName
+            // has not been specified.
             if (instance.proxy.getUserName() != null) {
                 props.setUserName(instance.proxy.getUserName());
                 props.setPassword(instance.proxy.getPassword());
             }
-            
+
             HttpClientFactory.setProxyProperties(props);
         }
     }
-    
+
     /**
      * Login begins with our {@link #doCommenceLogin(String)} method.
      */
@@ -129,7 +129,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     public String getLoginUrl() {
         return "securityRealm/commenceLogin";
     }
-    
+
     /**
      * Acegi has this notion that first an {@link Authentication} object is created
      * by collecting user information and then the act of authentication is done
@@ -150,7 +150,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 // AFAIK, OpenID doesn't define a way for us to query about other users, so no UserDetailsService
         );
     }
-    
+
     /**
      * The login process starts from here.
      */
@@ -163,9 +163,9 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 from = Jenkins.get().getRootUrl();
             }
         }
-        
+
         String referer = from;
-        
+
         return new OpenIdSession(getManager(), endpoint, "securityRealm/finishLogin") {
             @Override
             protected HttpResponse onSuccess(Identity id) throws IOException {
@@ -176,23 +176,23 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 if(p != null) {
                     p.addIdentifier(id.getOpenId());
                 }
-                
+
                 GrantedAuthority[] grantedAuthorities = id.getGrantedAuthorities().toArray(new GrantedAuthority[0]);
-                
+
                 // Because of JENKINS-36709 we log this user in after getting it.
                 // so that we use the correct id.
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         u.getId(), "", grantedAuthorities);
                 SecurityContextHolder.getContext().setAuthentication(token);
-                
+
                 UserDetails userDetails = new OpenIdSsoUserDetails(u.getId(), grantedAuthorities);
                 SecurityListener.fireAuthenticated(userDetails);
-                
+
                 return new HttpRedirect(referer);
             }
         }.doCommenceLogin();
     }
-    
+
     /**
      * This is where the user comes back to at the end of the OpenID redirect ping-pong.
      */
@@ -203,7 +203,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
         }
         return session.doFinishLogin(request);
     }
-    
+
     /**
      * Allow OpenId SSO Security Realms to determine the extensions that are applicable.
      * @param openIdExtension the extension.
@@ -213,13 +213,13 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     public boolean isApplicable(OpenIdExtension openIdExtension) {
         return true;
     }
-    
+
     @Extension
     public static class DescriptorImpl extends Descriptor<SecurityRealm> {
         public String getDisplayName() {
             return "OpenID SSO";
         }
-        
+
         @RequirePOST
         public FormValidation doValidate(@QueryParameter String endpoint) throws Exception {
             if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
@@ -233,7 +233,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 return FormValidation.error(e, "Invalid provider URL: " + endpoint);
             }
         }
-        
+
         static {
             TeamExtensionFactory.install();
         }
