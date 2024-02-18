@@ -17,10 +17,6 @@ vulnerability and missing permission check allow SSRF]
 
 [.aui-icon .aui-icon-small .aui-iconfont-warning .confluence-information-macro-icon]##
 
-*This plugin is up for adoption.* Want to help improve this plugin?
-https://wiki.jenkins-ci.org/display/JENKINS/Adopt+a+Plugin[Click here to
-learn more]!
-
 This plugin lets your Jenkins users login to Jenkins through external
 OpenID providers, without using password.(Or in the OpenID terminology,
 this plugin makes Jenkins http://en.wikipedia.org/wiki/OpenID[a relying
