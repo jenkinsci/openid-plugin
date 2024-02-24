@@ -14,7 +14,7 @@
   <packaging>hpi</packaging>
 
   <name>OpenID plugin</name>
-  <url>https://github.com/jenkinsci/openid-plugin/blob/master/README.adoc</url>
+  <url>https://github.com/jenkinsci/openid-plugin/blob/master/README.md</url>
 
   <licenses>
     <license>
