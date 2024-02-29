@@ -36,6 +36,7 @@ import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationManager;
 import org.acegisecurity.BadCredentialsException;
 import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.GrantedAuthorityImpl;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.acegisecurity.providers.anonymous.AnonymousAuthenticationToken;
@@ -60,6 +61,8 @@ import org.openid4java.util.HttpFetcherFactory;
 import org.openid4java.util.ProxyProperties;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SSO based on OpenID by fixing a provider.
@@ -177,7 +180,24 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                     p.addIdentifier(id.getOpenId());
                 }
 
-                GrantedAuthority[] grantedAuthorities = id.getGrantedAuthorities().toArray(new GrantedAuthority[0]);
+                List<GrantedAuthority> grantedAuthoritiesList = id.getGrantedAuthorities();
+                final GrantedAuthority[] grantedAuthorities;
+                if (grantedAuthoritiesList.isEmpty()) {
+                    // Ensure that there is at least one authority.
+                    grantedAuthorities = new GrantedAuthority[] {
+                            SecurityRealm.AUTHENTICATED_AUTHORITY
+                    };
+                } else {
+                    List<GrantedAuthority> grantedAuthorityWithTextualExpression = new ArrayList<>(grantedAuthoritiesList.size());
+                    for (GrantedAuthority grantedAuthority : grantedAuthoritiesList) {
+                        String textualExpressionOfGrantedAuthority = grantedAuthority.getAuthority();
+                        if (textualExpressionOfGrantedAuthority == null || textualExpressionOfGrantedAuthority.isEmpty()) {
+                            continue;
+                        }
+                        grantedAuthorityWithTextualExpression.add(grantedAuthority);
+                    }
+                    grantedAuthorities = grantedAuthorityWithTextualExpression.toArray(new GrantedAuthority[0]);
+                }
 
                 // Because of JENKINS-36709 we log this user in after getting it.
                 // so that we use the correct id.
