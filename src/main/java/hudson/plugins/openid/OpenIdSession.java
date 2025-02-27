@@ -79,17 +79,22 @@ public abstract class OpenIdSession {
     @SuppressFBWarnings(value = "J2EE_STORE_OF_NON_SERIALIZABLE_OBJECT_INTO_SESSION",
                         justification = "Just for this login.")
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
+        // Invalidate the existing session before starting a new login session
+        StaplerRequest currentRequest = Stapler.getCurrentRequest();
+        if (currentRequest != null) {
+            currentRequest.getSession().invalidate();
+        }
+    
         AuthRequest authReq = manager.authenticate(endpoint, Jenkins.get().getRootUrl() + finishUrl);
-
         OpenIdExtension.extendRequest(authReq);
-
         String url = authReq.getDestinationUrl(true);
-
+    
         // remember this in the session
         Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME, this);
-
+    
         return new HttpRedirect(url);
     }
+                        
 
     /**
      * When the identity provider is done with its thing, the user comes back here.
