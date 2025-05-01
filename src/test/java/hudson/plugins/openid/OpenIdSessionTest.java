@@ -4,12 +4,13 @@ import org.junit.Test;
 import org.junit.Before;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.junit.Rule;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.HttpResponse;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.OpenIDException;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.IOException;
@@ -23,15 +24,15 @@ public class OpenIdSessionTest {
 
     private TestableOpenIdSession session;
     private static final String ENDPOINT_URL = "http://example.com/openid";
-    private StaplerRequest mockRequest;
+    private StaplerRequest2 mockRequest;
     private HttpSession mockSession;
 
     // Create a concrete implementation of OpenIdSession for testing
     private static class TestableOpenIdSession extends OpenIdSession {
-        private final StaplerRequest mockRequest;
+        private final StaplerRequest2 mockRequest;
         private boolean commenceLoginCalled = false;
 
-        public TestableOpenIdSession(StaplerRequest request) throws OpenIDException, MalformedURLException {
+        public TestableOpenIdSession(StaplerRequest2 request) throws OpenIDException, MalformedURLException {
             super(new ConsumerManager(),
                   new DiscoveryInformation(new URL(ENDPOINT_URL)),
                   "/finishLogin");
@@ -39,7 +40,7 @@ public class OpenIdSessionTest {
         }
 
         @Override
-        public HttpResponse doFinishLogin(StaplerRequest request) {
+        public HttpResponse doFinishLogin(StaplerRequest2 request) {
             return null; // Not needed for these tests
         }
 
@@ -60,7 +61,7 @@ public class OpenIdSessionTest {
             // Return dummy response instead of calling super
             return new HttpResponse() {
                 @Override
-                public void generateResponse(StaplerRequest req, org.kohsuke.stapler.StaplerResponse rsp, Object node) throws IOException {
+                public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node) throws IOException {
                     // Do nothing for test
                 }
             };
@@ -74,7 +75,7 @@ public class OpenIdSessionTest {
     @Before
     public void setUp() throws Exception {
         // Setup mocks
-        mockRequest = mock(StaplerRequest.class);
+        mockRequest = mock(StaplerRequest2.class);
         mockSession = mock(HttpSession.class);
         when(mockRequest.getSession()).thenReturn(mockSession);
         when(mockRequest.getSession(false)).thenReturn(mockSession);
