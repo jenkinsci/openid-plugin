@@ -41,7 +41,7 @@ import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
@@ -138,7 +138,7 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     private String getFinishUrl() {
-        StaplerRequest req = Stapler.getCurrentRequest();
+        StaplerRequest2 req = Stapler.getCurrentRequest2();
         String contextPath = req.getContextPath();
         if (StringUtils.isBlank(contextPath) || "/".equals(contextPath)) {
             return "federatedLoginService/openid/finish";
@@ -149,7 +149,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         }
     }
 
-    public HttpResponse doFinish(StaplerRequest request) throws IOException, OpenIDException {
+    public HttpResponse doFinish(StaplerRequest2 request) throws IOException, OpenIDException {
         if (isDisabled()) {
             return HttpResponses.notFound();
         }
@@ -247,7 +247,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         }
 
         @Override
-        public boolean configure(StaplerRequest req, JSONObject json) {
+        public boolean configure(StaplerRequest2 req, JSONObject json) {
             req.bindJSON(this, json);
             return true;
         }

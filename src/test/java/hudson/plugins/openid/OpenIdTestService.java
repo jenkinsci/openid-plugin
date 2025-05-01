@@ -28,8 +28,8 @@ import com.cloudbees.openid4java.team.TeamExtensionRequest;
 import com.cloudbees.openid4java.team.TeamExtensionResponse;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.openid4java.association.AssociationException;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
@@ -71,7 +71,7 @@ public class OpenIdTestService {
             this.msg = msg;
         }
 
-        public void generateResponse(StaplerRequest req, StaplerResponse rsp, Object node) throws IOException {
+        public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node) throws IOException {
             rsp.setContentType("text/plain");
             rsp.getWriter().print(msg.keyValueFormEncoding());
         }
@@ -82,22 +82,18 @@ public class OpenIdTestService {
             super(message);
         }
 
-        public void generateResponse(StaplerRequest req, StaplerResponse rsp, Object node) throws IOException {
+        public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node) throws IOException {
             rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, getMessage());
         }
     }
 
 
     public final String url;
-
     public final String endpointUrl;
-
     public Map<IdProperty, String> props;
-
     public final Set<String> teams;
 
     private final ServerManager manager;
-
     private final List<ProcessExtension> extensions;
 
     public enum IdProperty {
@@ -134,7 +130,7 @@ public class OpenIdTestService {
         return url + email;
     }
 
-    public HttpResponse doEndpoint(StaplerRequest request) throws IOException {
+    public HttpResponse doEndpoint(StaplerRequest2 request) throws IOException {
         final ParameterList requestp = new ParameterList(request.getParameterMap());
         final String mode = requestp.getParameterValue("openid.mode");
         final String realm = getRealm(requestp);
@@ -280,8 +276,12 @@ public class OpenIdTestService {
         }
     };
 
-    public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-        req.getView(this, "xrds.jelly").forward(req, rsp);
+    public void doDynamic(StaplerRequest2 req, StaplerResponse2 rsp) throws IOException, ServletException {
+        try {
+            req.getView(this, "xrds.jelly").forward(req, rsp);
+        } catch (jakarta.servlet.ServletException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     static class ServiceTeamExtensionResponse extends TeamExtensionResponse {
