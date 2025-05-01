@@ -39,7 +39,8 @@ public class OpenIdUserPropertyTest extends HudsonTestCase {
 
         // submit empty config
         WebClient wc = new WebClient().login("alice", "alice");
-        submit(wc.goTo("user/alice/configure").getFormByName("config"));
+        HtmlPage configure = wc.goTo("user/alice/account/");
+        submit(configure.getFormByName("config"));
 
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertTrue(p.getIdentifiers().isEmpty());
@@ -47,7 +48,7 @@ public class OpenIdUserPropertyTest extends HudsonTestCase {
 
         // submit a non-empty config
         p.addIdentifier("http://me.cloudbees.com/");
-        submit(wc.goTo("user/alice/configure").getFormByName("config"));
+        submit(configure.getFormByName("config"));
         p = u.getProperty(OpenIdUserProperty.class);
         assertTrue(p.has("http://me.cloudbees.com/"));
     }
@@ -62,7 +63,7 @@ public class OpenIdUserPropertyTest extends HudsonTestCase {
 
         // submit empty config
         WebClient wc = createWebClient();
-        HtmlPage pg = wc.goTo("user/alice/configure");
+        HtmlPage pg = wc.goTo("user/alice/account/");
 
         // should see no OpenID in the page
         assertFalse(pg.getWebResponse().getContentAsString().contains("OpenID"));
