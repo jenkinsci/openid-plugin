@@ -30,7 +30,7 @@ import jenkins.model.Jenkins;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
@@ -80,7 +80,7 @@ public abstract class OpenIdSession {
                         justification = "Just for this login.")
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
         // Invalidate the existing session before starting a new login session
-        StaplerRequest currentRequest = Stapler.getCurrentRequest();
+        StaplerRequest2 currentRequest = Stapler.getCurrentRequest2();
         if (currentRequest != null) {
             currentRequest.getSession().invalidate();
         }
@@ -90,7 +90,7 @@ public abstract class OpenIdSession {
         String url = authReq.getDestinationUrl(true);
 
         // remember this in the session
-        Stapler.getCurrentRequest().getSession().setAttribute(SESSION_NAME, this);
+        Stapler.getCurrentRequest2().getSession().setAttribute(SESSION_NAME, this);
 
         return new HttpRedirect(url);
     }
@@ -98,7 +98,7 @@ public abstract class OpenIdSession {
     /**
      * When the identity provider is done with its thing, the user comes back here.
      */
-    public HttpResponse doFinishLogin(StaplerRequest request) throws IOException, OpenIDException {
+    public HttpResponse doFinishLogin(StaplerRequest2 request) throws IOException, OpenIDException {
         // extract the parameters from the authentication process
         // (which comes in as a HTTP extend from the OpenID provider)
         ParameterList responseList = new ParameterList(request.getParameterMap());
@@ -135,7 +135,7 @@ public abstract class OpenIdSession {
      * Gets the {@link OpenIdSession} associated with HTTP session in the current extend.
      */
     public static OpenIdSession getCurrent() {
-        return (OpenIdSession) Stapler.getCurrentRequest().getSession().getAttribute(SESSION_NAME);
+        return (OpenIdSession) Stapler.getCurrentRequest2().getSession().getAttribute(SESSION_NAME);
     }
 
     static {

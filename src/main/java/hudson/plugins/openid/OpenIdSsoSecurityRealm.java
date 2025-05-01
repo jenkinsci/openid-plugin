@@ -46,7 +46,7 @@ import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
@@ -159,7 +159,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      */
     public HttpResponse doCommenceLogin(@QueryParameter String from) throws IOException, OpenIDException {
         if (from == null || !from.startsWith("/")) {
-            StaplerRequest currentRequest = Stapler.getCurrentRequest();
+            StaplerRequest2 currentRequest = Stapler.getCurrentRequest2();
             if (currentRequest.getHeader("Referer") != null) {
                 from = currentRequest.getHeader("Referer");
             } else {
@@ -216,7 +216,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     /**
      * This is where the user comes back to at the end of the OpenID redirect ping-pong.
      */
-    public HttpResponse doFinishLogin(StaplerRequest request) throws IOException, OpenIDException {
+    public HttpResponse doFinishLogin(StaplerRequest2 request) throws IOException, OpenIDException {
         OpenIdSession session = OpenIdSession.getCurrent();
         if (session == null) {
             throw new Failure(Messages.OpenIdLoginService_SessionNotFound());
