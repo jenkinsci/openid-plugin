@@ -51,8 +51,6 @@ import org.openid4java.server.ServerManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,7 +131,6 @@ public class OpenIdTestService {
     public HttpResponse doEndpoint(StaplerRequest2 request) throws IOException {
         final ParameterList requestp = new ParameterList(request.getParameterMap());
         final String mode = requestp.getParameterValue("openid.mode");
-        final String realm = getRealm(requestp);
 
         if ("associate".equals(mode)) {
             // --- process an association extend ---
@@ -168,22 +165,6 @@ public class OpenIdTestService {
         } else {
             throw new OperationFailure("Unknown extend: " + mode);
         }
-    }
-
-    private String getRealm(ParameterList requestp) {
-        final String realm = requestp.getParameterValue("openid.realm");
-        final String returnTo = requestp.getParameterValue("openid.return_to");
-
-        if (realm == null && returnTo != null) {
-            try {
-                return new URL(returnTo).getHost();
-            } catch (MalformedURLException e) {
-                // Fall back
-                return returnTo;
-            }
-        }
-
-        return realm;
     }
 
     private void respondToExtensions(ParameterList reqp, Message rep) throws MessageException {
@@ -269,8 +250,6 @@ public class OpenIdTestService {
         if (authReq.hasExtension(TeamExtensionFactory.URI)) {
             MessageExtension ext = authReq.getExtension(TeamExtensionFactory.URI);
             if (ext instanceof TeamExtensionRequest) {
-                TeamExtensionRequest teamReq = (TeamExtensionRequest) ext;
-
                 rep.addExtension(new ServiceTeamExtensionResponse(s.teams));
             }
         }
