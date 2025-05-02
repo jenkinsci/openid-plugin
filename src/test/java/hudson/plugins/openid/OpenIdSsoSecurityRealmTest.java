@@ -31,9 +31,7 @@ import hudson.model.User;
 import hudson.plugins.openid.OpenIdTestService.IdProperty;
 
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import org.acegisecurity.Authentication;
 import org.acegisecurity.GrantedAuthority;
@@ -42,7 +40,6 @@ import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.util.HttpClientFactory;
