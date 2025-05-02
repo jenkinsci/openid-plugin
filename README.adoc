@@ -23,7 +23,7 @@ The plugin has two somewhat different mode of operations:
 
 === Build
 
-Requires JDK 11, Maven 3.0 or higher.
+Requires JDK 17, Maven 3.9.6 or higher.
 
 [source,bash]
 ----
