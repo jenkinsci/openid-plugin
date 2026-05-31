@@ -3,12 +3,11 @@ package hudson.plugins.openid;
 import hudson.Extension;
 import hudson.Plugin;
 import hudson.model.UnprotectedRootAction;
+import java.io.IOException;
+import javax.servlet.ServletException;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
-
-import javax.servlet.ServletException;
-import java.io.IOException;
 
 /**
  * Serve static resources even when the user doesn't have read access, as in prior to the login.

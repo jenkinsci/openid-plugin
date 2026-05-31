@@ -30,8 +30,11 @@ import hudson.model.Failure;
 import hudson.model.User;
 import hudson.security.SecurityRealm;
 import hudson.util.FormValidation;
-import jenkins.security.SecurityListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import jenkins.model.Jenkins;
+import jenkins.security.SecurityListener;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationManager;
 import org.acegisecurity.BadCredentialsException;
@@ -58,10 +61,6 @@ import org.openid4java.server.RealmVerifierFactory;
 import org.openid4java.util.HttpClientFactory;
 import org.openid4java.util.HttpFetcherFactory;
 import org.openid4java.util.ProxyProperties;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * SSO based on OpenID by fixing a provider.
@@ -101,10 +100,12 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
     protected ConsumerManager createManager() throws ConsumerException {
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
-        ConsumerManager manager = new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
+        ConsumerManager manager =
+                new ConsumerManager(new RealmVerifierFactory(resolver), new Discovery(), fetcherFactory);
         manager.setAssociations(new InMemoryConsumerAssociationStore());
         manager.setNonceVerifier(new InMemoryNonceVerifier(5000));
-        manager.getDiscovery().setYadisResolver(resolver); return manager;
+        manager.getDiscovery().setYadisResolver(resolver);
+        return manager;
     }
 
     protected void addProxyPropertiesToHttpClient() {
@@ -142,15 +143,15 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      */
     @Override
     public SecurityComponents createSecurityComponents() {
-        return new SecurityComponents((org.acegisecurity.AuthenticationManager)
-                authentication -> {
+        return new SecurityComponents(
+                (org.acegisecurity.AuthenticationManager) authentication -> {
                     if (authentication instanceof AnonymousAuthenticationToken) {
                         return authentication;
                     }
                     throw new BadCredentialsException("Unexpected authentication type: " + authentication);
                 }
                 // AFAIK, OpenID doesn't define a way for us to query about other users, so no UserDetailsService
-        );
+                );
     }
 
     /**
@@ -175,7 +176,7 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 User u = User.get(id.getEffectiveNick());
                 id.updateProfile(u);
                 OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
-                if(p != null) {
+                if (p != null) {
                     p.addIdentifier(id.getOpenId());
                 }
 
@@ -183,14 +184,14 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
                 final GrantedAuthority[] grantedAuthorities;
                 if (grantedAuthoritiesList.isEmpty()) {
                     // Ensure that there is at least one authority.
-                    grantedAuthorities = new GrantedAuthority[] {
-                            SecurityRealm.AUTHENTICATED_AUTHORITY
-                    };
+                    grantedAuthorities = new GrantedAuthority[] {SecurityRealm.AUTHENTICATED_AUTHORITY};
                 } else {
-                    List<GrantedAuthority> grantedAuthorityWithTextualExpression = new ArrayList<>(grantedAuthoritiesList.size());
+                    List<GrantedAuthority> grantedAuthorityWithTextualExpression =
+                            new ArrayList<>(grantedAuthoritiesList.size());
                     for (GrantedAuthority grantedAuthority : grantedAuthoritiesList) {
                         String textualExpressionOfGrantedAuthority = grantedAuthority.getAuthority();
-                        if (textualExpressionOfGrantedAuthority == null || textualExpressionOfGrantedAuthority.isEmpty()) {
+                        if (textualExpressionOfGrantedAuthority == null
+                                || textualExpressionOfGrantedAuthority.isEmpty()) {
                             continue;
                         }
                         grantedAuthorityWithTextualExpression.add(grantedAuthority);
@@ -200,8 +201,8 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
 
                 // Because of JENKINS-36709 we log this user in after getting it.
                 // so that we use the correct id.
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        u.getId(), "", grantedAuthorities);
+                UsernamePasswordAuthenticationToken token =
+                        new UsernamePasswordAuthenticationToken(u.getId(), "", grantedAuthorities);
                 SecurityContextHolder.getContext().setAuthentication(token);
 
                 UserDetails userDetails = new OpenIdSsoUserDetails(u.getId(), grantedAuthorities);

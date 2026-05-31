@@ -26,6 +26,12 @@ package hudson.plugins.openid;
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
 import com.cloudbees.openid4java.team.TeamExtensionResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest2;
@@ -47,13 +53,6 @@ import org.openid4java.message.sreg.SRegResponse;
 import org.openid4java.server.InMemoryServerAssociationStore;
 import org.openid4java.server.ServerException;
 import org.openid4java.server.ServerManager;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -85,7 +84,6 @@ public class OpenIdTestService {
         }
     }
 
-
     public final String url;
     public final String endpointUrl;
     public Map<IdProperty, String> props;
@@ -95,7 +93,14 @@ public class OpenIdTestService {
     private final List<ProcessExtension> extensions;
 
     public enum IdProperty {
-        email, email2, email3, nick, fullName, firstName, lastName, derivedFullName
+        email,
+        email2,
+        email3,
+        nick,
+        fullName,
+        firstName,
+        lastName,
+        derivedFullName
     }
 
     OpenIdTestService(String url, Map<IdProperty, String> props, Set<String> teams, List<ProcessExtension> extensions) {
@@ -217,25 +222,30 @@ public class OpenIdTestService {
                     FetchResponse fr = FetchResponse.createFetchResponse();
 
                     for (Map.Entry<String, String> e : ((Map<String, String>) fetchReq.getAttributes()).entrySet()) {
-                        if ((e.getValue().equals("http://axschema.org/contact/email")) && s.props.containsKey(IdProperty.email)) {
+                        if ((e.getValue().equals("http://axschema.org/contact/email"))
+                                && s.props.containsKey(IdProperty.email)) {
                             if (s.props.get(IdProperty.email) != null) {
                                 fr.addAttribute(e.getKey(), e.getValue(), s.props.get(IdProperty.email));
                             }
-                        } else if ((e.getValue().equals("http://schema.openid.net/contact/email")) && s.props.containsKey(IdProperty.email2)) {
+                        } else if ((e.getValue().equals("http://schema.openid.net/contact/email"))
+                                && s.props.containsKey(IdProperty.email2)) {
                             if (s.props.get(IdProperty.email2) != null) {
                                 fr.addAttribute(e.getKey(), e.getValue(), s.props.get(IdProperty.email2));
                             }
-                        } else if ((e.getValue().equals("http://openid.net/schema/contact/email")) && s.props.containsKey(IdProperty.email3)) {
+                        } else if ((e.getValue().equals("http://openid.net/schema/contact/email"))
+                                && s.props.containsKey(IdProperty.email3)) {
                             if (s.props.get(IdProperty.email3) != null) {
                                 fr.addAttribute(e.getKey(), e.getValue(), s.props.get(IdProperty.email3));
                             }
                         }
 
-                        if (e.getValue().equals("http://axschema.org/namePerson/first") && s.props.containsKey(IdProperty.firstName)) {
+                        if (e.getValue().equals("http://axschema.org/namePerson/first")
+                                && s.props.containsKey(IdProperty.firstName)) {
                             fr.addAttribute(e.getKey(), e.getValue(), s.props.get(IdProperty.firstName));
                         }
 
-                        if (e.getValue().equals("http://axschema.org/namePerson/last") && s.props.containsKey(IdProperty.lastName)) {
+                        if (e.getValue().equals("http://axschema.org/namePerson/last")
+                                && s.props.containsKey(IdProperty.lastName)) {
                             fr.addAttribute(e.getKey(), e.getValue(), s.props.get(IdProperty.lastName));
                         }
                     }

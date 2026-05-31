@@ -23,21 +23,21 @@
  */
 package hudson.plugins.openid;
 
-import org.htmlunit.html.HtmlPage;
+import static hudson.plugins.openid.OpenIdTestService.AX_EXTENSION;
+import static hudson.plugins.openid.OpenIdTestService.SREG_EXTENSION;
+import static hudson.plugins.openid.OpenIdTestService.TEAM_EXTENSION;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import hudson.model.User;
 import hudson.plugins.openid.OpenIdTestService.IdProperty;
 import hudson.tasks.Mailer;
 import hudson.tasks.Mailer.UserProperty;
+import org.htmlunit.html.HtmlPage;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
-
-import static hudson.plugins.openid.OpenIdTestService.AX_EXTENSION;
-import static hudson.plugins.openid.OpenIdTestService.SREG_EXTENSION;
-import static hudson.plugins.openid.OpenIdTestService.TEAM_EXTENSION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Nirmal Jonnalagedda

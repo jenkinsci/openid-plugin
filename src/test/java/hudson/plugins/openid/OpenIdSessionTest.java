@@ -1,21 +1,22 @@
 package hudson.plugins.openid;
 
-import org.junit.Test;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import org.junit.Before;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
-import org.kohsuke.stapler.HttpResponse;
+import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.discovery.DiscoveryInformation;
-import org.openid4java.OpenIDException;
-import jakarta.servlet.http.HttpSession;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.io.IOException;
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 public class OpenIdSessionTest {
 
@@ -33,9 +34,7 @@ public class OpenIdSessionTest {
         private boolean commenceLoginCalled = false;
 
         public TestableOpenIdSession(StaplerRequest2 request) throws OpenIDException, MalformedURLException {
-            super(new ConsumerManager(),
-                  new DiscoveryInformation(new URL(ENDPOINT_URL)),
-                  "/finishLogin");
+            super(new ConsumerManager(), new DiscoveryInformation(new URL(ENDPOINT_URL)), "/finishLogin");
             this.mockRequest = request;
         }
 
@@ -61,7 +60,8 @@ public class OpenIdSessionTest {
             // Return dummy response instead of calling super
             return new HttpResponse() {
                 @Override
-                public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node) throws IOException {
+                public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node)
+                        throws IOException {
                     // Do nothing for test
                 }
             };
@@ -104,8 +104,7 @@ public class OpenIdSessionTest {
         assertTrue("CommenceLogin should have been called", session.wasCommenceLoginCalled());
 
         String newSessionId = mockSession.getId();
-        assertNotEquals("Session should have been invalidated",
-            originalSessionId, newSessionId);
+        assertNotEquals("Session should have been invalidated", originalSessionId, newSessionId);
 
         // Verify that invalidate was called
         verify(mockSession).invalidate();

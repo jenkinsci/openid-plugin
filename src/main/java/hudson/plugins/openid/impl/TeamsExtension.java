@@ -31,18 +31,17 @@ import hudson.Extension;
 import hudson.plugins.openid.Identity;
 import hudson.plugins.openid.OpenIdExtension;
 import hudson.security.SecurityRealm;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.MessageException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Use the OpenID team extension (https://dev.launchpad.net/OpenIDTeams) to obtain membership.
@@ -78,8 +77,9 @@ public class TeamsExtension extends OpenIdExtension {
         }
         r.add(SecurityRealm.AUTHENTICATED_AUTHORITY);
 
-        LOGGER.log(Level.FINE, "Adding {0} as authorities from team extension to {1}",
-                new Object[]{ ter.getTeamMembership(), id.getOpenId()});
+        LOGGER.log(Level.FINE, "Adding {0} as authorities from team extension to {1}", new Object[] {
+            ter.getTeamMembership(), id.getOpenId()
+        });
     }
 
     static {
@@ -91,11 +91,10 @@ public class TeamsExtension extends OpenIdExtension {
     /**
      * Escape hatch for people affected by JENKINS-14843 until we switch to POST.
      */
-    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL",
+    @SuppressFBWarnings(
+            value = "MS_SHOULD_BE_FINAL",
             justification = "Common Jenkins pattern for configs, which may be changed in the runtime")
-    public static boolean DISABLE = Boolean.parseBoolean(
-            System.getProperty(TeamsExtension.class.getName() + ".disable",
-                    System.getProperty(TeamsExtension.class.getName() + "disable")
-            )
-    );
+    public static boolean DISABLE = Boolean.parseBoolean(System.getProperty(
+            TeamsExtension.class.getName() + ".disable",
+            System.getProperty(TeamsExtension.class.getName() + "disable")));
 }

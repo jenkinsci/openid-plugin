@@ -28,12 +28,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
 import hudson.model.User;
 import hudson.tasks.Mailer;
+import java.io.IOException;
+import java.util.*;
 import org.acegisecurity.GrantedAuthority;
 import org.openid4java.OpenIDException;
 import org.openid4java.message.AuthSuccess;
-
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Represents an identity information given by the OpenID provider.
@@ -56,7 +55,6 @@ public class Identity {
 
         OpenIdExtension.processResponse(authSuccess, this);
     }
-
 
     public String getOpenId() {
         return openId;

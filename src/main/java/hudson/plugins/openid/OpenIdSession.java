@@ -26,6 +26,8 @@ package hudson.plugins.openid;
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.Failure;
+import java.io.IOException;
+import java.util.List;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
@@ -41,9 +43,6 @@ import org.openid4java.message.AuthRequest;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.Message;
 import org.openid4java.message.ParameterList;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Represents state for an OpenID authentication.
@@ -85,8 +84,9 @@ public abstract class OpenIdSession {
     /**
      * Starts the login session.
      */
-    @SuppressFBWarnings(value = "J2EE_STORE_OF_NON_SERIALIZABLE_OBJECT_INTO_SESSION",
-                        justification = "Just for this login.")
+    @SuppressFBWarnings(
+            value = "J2EE_STORE_OF_NON_SERIALIZABLE_OBJECT_INTO_SESSION",
+            justification = "Just for this login.")
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
         // Invalidate the existing session before starting a new login session
         StaplerRequest2 currentRequest = Stapler.getCurrentRequest2();
