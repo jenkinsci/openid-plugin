@@ -49,6 +49,7 @@ import org.openid4java.consumer.InMemoryNonceVerifier;
 import org.openid4java.discovery.Discovery;
 import org.openid4java.server.RealmVerifierFactory;
 import org.openid4java.util.HttpFetcherFactory;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 
@@ -131,10 +132,12 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     @Override
+    @NonNull
     public String getUrlName() {
         return "openid";
     }
 
+    @NonNull
     public Class<? extends FederatedLoginServiceUserProperty> getUserPropertyClass() {
         return OpenIdUserProperty.class;
     }
