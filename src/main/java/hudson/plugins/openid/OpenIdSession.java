@@ -54,6 +54,15 @@ public abstract class OpenIdSession {
     private final ConsumerManager manager;
     private final DiscoveryInformation endpoint;
     private final String finishUrl;
+    private String from;
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getFrom() {
+        return this.from;
+    }
 
     public OpenIdSession(ConsumerManager manager, DiscoveryInformation endpoint, String finishUrl) {
         this.manager = manager;

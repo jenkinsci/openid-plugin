@@ -65,6 +65,36 @@ public class OpenIdLoginService extends FederatedLoginService {
 
     private static boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName() + ".disabled");
 
+    private boolean isSafeRedirectTarget(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return false;
+        }
+
+        String rootUrl = Jenkins.get().getRootUrl();
+        if (rootUrl != null && url.startsWith(rootUrl)) {
+            return true;
+        }
+
+        StaplerRequest2 req = Stapler.getCurrentRequest2();
+        if (req != null) {
+            String contextPath = req.getContextPath();
+            if (contextPath == null) {
+                contextPath = "";
+            }
+
+            // Ensure it starts with a slash, or the specific context path (e.g., "/jenkins/")
+            if (url.startsWith("/") || url.startsWith(contextPath + "/")) {
+                // Prevent protocol relative redirects (e.g., "//evil.com")
+                if (url.startsWith("//")) {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public OpenIdLoginService() {
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
         YadisResolver2 resolver = new YadisResolver2(fetcherFactory);
@@ -125,16 +155,23 @@ public class OpenIdLoginService extends FederatedLoginService {
             openid = openid_identifier;
         }
 
-        return new OpenIdSession(manager, openid, getFinishUrl()) {
+        OpenIdSession session = new OpenIdSession(manager, openid, getFinishUrl()) {
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 IdentityImpl id = new IdentityImpl(identity);
                 User u = id.signin();
                 id.id.updateProfile(u);
+                String requestedUrl = getFrom();
+
+                if (isSafeRedirectTarget(requestedUrl)) {
+                    return HttpResponses.redirectTo(requestedUrl);
+                }
 
                 return HttpResponses.redirectToContextRoot();
             }
-        }.doCommenceLogin();
+        };
+        session.setFrom(from);
+        return session.doCommenceLogin();
     }
 
     private String getFinishUrl() {
