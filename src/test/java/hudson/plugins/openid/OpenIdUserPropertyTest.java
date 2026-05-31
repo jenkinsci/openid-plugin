@@ -23,9 +23,9 @@
  */
 package hudson.plugins.openid;
 
-import org.htmlunit.html.HtmlPage;
 import hudson.model.User;
 import hudson.security.HudsonPrivateSecurityRealm;
+import org.htmlunit.html.HtmlPage;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 /**
@@ -44,7 +44,6 @@ public class OpenIdUserPropertyTest extends HudsonTestCase {
 
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertTrue(p.getIdentifiers().isEmpty());
-
 
         // submit a non-empty config
         p.addIdentifier("http://me.cloudbees.com/");

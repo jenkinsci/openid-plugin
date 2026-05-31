@@ -23,15 +23,14 @@
  */
 package hudson.plugins.openid;
 
+import static hudson.plugins.openid.OpenIdTestService.IdProperty;
+
 import com.google.common.collect.Maps;
 import hudson.model.UnprotectedRootAction;
-import org.junit.Rule;
-import org.jvnet.hudson.test.JenkinsRule;
-
 import java.io.IOException;
 import java.util.Map;
-
-import static hudson.plugins.openid.OpenIdTestService.IdProperty;
+import org.junit.Rule;
+import org.jvnet.hudson.test.JenkinsRule;
 
 /**
  * @author Paul Sandoz

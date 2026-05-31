@@ -23,6 +23,8 @@
  */
 package hudson.plugins.openid;
 
+import static hudson.Util.fixNull;
+
 import com.google.inject.Inject;
 import hudson.Extension;
 import hudson.model.User;
@@ -31,15 +33,12 @@ import hudson.model.UserPropertyDescriptor;
 import hudson.security.AbstractPasswordBasedSecurityRealm;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.util.Secret;
-import jenkins.model.Jenkins;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import static hudson.Util.fixNull;
+import jenkins.model.Jenkins;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Kohsuke Kawaguchi

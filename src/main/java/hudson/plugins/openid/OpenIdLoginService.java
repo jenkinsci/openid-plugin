@@ -31,6 +31,7 @@ import hudson.model.User;
 import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.security.SecurityRealm;
+import java.io.IOException;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalConfigurationCategory;
 import jenkins.model.Jenkins;
@@ -51,8 +52,6 @@ import org.openid4java.server.RealmVerifierFactory;
 import org.openid4java.util.HttpFetcherFactory;
 import org.springframework.lang.NonNull;
 
-import java.io.IOException;
-
 /**
  * Augments other {@link SecurityRealm} by allowing login via OpenID.
  *
@@ -62,6 +61,7 @@ import java.io.IOException;
 public class OpenIdLoginService extends FederatedLoginService {
     @Inject
     private transient Jenkins jenkins;
+
     private final ConsumerManager manager;
 
     private static boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName() + ".disabled");
@@ -106,11 +106,12 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     public boolean isDisabled() {
-        return disabled || !jenkins.getDescriptorByType(GlobalConfigurationImpl.class).isEnabled()
+        return disabled
+                || !jenkins.getDescriptorByType(GlobalConfigurationImpl.class).isEnabled()
                 || jenkins.getSecurityRealm() instanceof OpenIdSsoSecurityRealm;
     }
 
-    //TODO: Such usage of static fields is a bad practice in any case.
+    // TODO: Such usage of static fields is a bad practice in any case.
 
     /**
      * Globally sets the disabled flag on {@link OpenIdLoginService} instances.
@@ -145,10 +146,9 @@ public class OpenIdLoginService extends FederatedLoginService {
     /**
      * Commence a login.
      */
-    public HttpResponse doStartLogin(@QueryParameter String openid,
-                                     @QueryParameter String openid_identifier,
-                                     @QueryParameter String from
-    ) throws OpenIDException, IOException {
+    public HttpResponse doStartLogin(
+            @QueryParameter String openid, @QueryParameter String openid_identifier, @QueryParameter String from)
+            throws OpenIDException, IOException {
         if (isDisabled()) {
             return HttpResponses.notFound();
         }
@@ -200,8 +200,8 @@ public class OpenIdLoginService extends FederatedLoginService {
         return session.doFinishLogin(request);
     }
 
-    public HttpResponse doStartAssociate(@QueryParameter String openid,
-                                         @QueryParameter String openid_identifier)  throws OpenIDException, IOException {
+    public HttpResponse doStartAssociate(@QueryParameter String openid, @QueryParameter String openid_identifier)
+            throws OpenIDException, IOException {
         if (isDisabled()) {
             return HttpResponses.notFound();
         }
