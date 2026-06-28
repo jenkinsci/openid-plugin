@@ -43,6 +43,7 @@ import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
@@ -146,6 +147,7 @@ public class OpenIdLoginService extends FederatedLoginService {
     /**
      * Commence a login.
      */
+    @RequirePOST
     public HttpResponse doStartLogin(
             @QueryParameter String openid, @QueryParameter String openid_identifier, @QueryParameter String from)
             throws OpenIDException, IOException {
@@ -200,6 +202,7 @@ public class OpenIdLoginService extends FederatedLoginService {
         return session.doFinishLogin(request);
     }
 
+    @RequirePOST
     public HttpResponse doStartAssociate(@QueryParameter String openid, @QueryParameter String openid_identifier)
             throws OpenIDException, IOException {
         if (isDisabled()) {
