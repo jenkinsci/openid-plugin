@@ -38,8 +38,6 @@ var openid = {
     init: function(input_id) {
         "use strict";
         var providers = this.providers;
-        var providers_large;
-        var providers_small;
 
         Object.extend(providers, providers_large);
         Object.extend(providers, providers_small);
