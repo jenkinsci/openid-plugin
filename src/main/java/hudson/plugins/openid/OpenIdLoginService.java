@@ -25,6 +25,7 @@ package hudson.plugins.openid;
 
 import com.google.inject.Inject;
 import hudson.Extension;
+import hudson.Util;
 import hudson.Plugin;
 import hudson.model.Failure;
 import hudson.model.User;
@@ -36,7 +37,6 @@ import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalConfigurationCategory;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
@@ -182,12 +182,18 @@ public class OpenIdLoginService extends FederatedLoginService {
     private String getFinishUrl() {
         StaplerRequest2 req = Stapler.getCurrentRequest2();
         String contextPath = req.getContextPath();
-        if (StringUtils.isBlank(contextPath) || "/".equals(contextPath)) {
+        if (Util.fixEmptyAndTrim(contextPath) == null || "/".equals(contextPath)) {
             return "federatedLoginService/openid/finish";
         } else {
             // hack alert... work around some less than consistent servlet containers
-            return StringUtils.removeEnd(StringUtils.removeStart(contextPath, "/"), "/")
-                    + "/federatedLoginService/openid/finish";
+            String trimmedContextPath = contextPath;
+            if (trimmedContextPath.startsWith("/")) {
+                trimmedContextPath = trimmedContextPath.substring(1);
+            }
+            if (trimmedContextPath.endsWith("/")) {
+                trimmedContextPath = trimmedContextPath.substring(0, trimmedContextPath.length() - 1);
+            }
+            return trimmedContextPath + "/federatedLoginService/openid/finish";
         }
     }
 
