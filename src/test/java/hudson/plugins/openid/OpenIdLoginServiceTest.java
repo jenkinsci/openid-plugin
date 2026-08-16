@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.List;
 import jenkins.model.Jenkins;
 import org.htmlunit.ElementNotFoundException;
-import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
 import org.junit.Ignore;
@@ -119,12 +118,9 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
 
         // Login with OpenID as an unregistered user
         HtmlPage login = wc.goTo("federatedLoginService/openid/login?from=/");
-        login.getDocumentElement()
-                .getOneHtmlElementByAttribute("a", "title", "log in with OpenID")
-                .click();
         HtmlForm loginForm = getFormById(login, "openid_form");
         loginForm.getInputByName("openid").setValue(jr.openid.url);
-        HtmlPage signUp = ((HtmlElement) loginForm.getFirstByXPath("//input[@type='submit']")).click();
+        HtmlPage signUp = jr.submit(loginForm);
 
         // Sign up user
         HtmlForm signUpForm = getFormByAction(signUp, "/securityRealm/createAccountWithFederatedIdentity");
@@ -154,12 +150,8 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
 
     private void login(WebClient wc) throws Exception {
         HtmlPage login = wc.goTo("federatedLoginService/openid/login?from=/");
-        login.getDocumentElement()
-                .getOneHtmlElementByAttribute("a", "title", "log in with OpenID")
-                .click();
         HtmlForm loginForm = getFormById(login, "openid_form");
         loginForm.getInputByName("openid").setValue(jr.openid.url);
-        // HtmlPage loggedIn = ((HtmlElement)loginForm.getFirstByXPath("//input[@type='submit']")).click();
         HtmlPage loggedIn = jr.submit(loginForm);
 
         assertNotNull(loggedIn.getAnchorByHref("/jenkins/logout"));
