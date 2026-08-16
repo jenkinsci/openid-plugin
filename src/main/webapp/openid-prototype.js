@@ -7,12 +7,38 @@
 /* jslint browser: true */
 /* global $, jQuery */
 
+/*
+ * Modern Jenkins no longer bundles Prototype.js, but this file still relies on
+ * a few of its helpers. Provide minimal replacements so the login form works.
+ */
+if (typeof Object.extend !== 'function') {
+    Object.extend = function(destination, source) {
+        for (var key in source) {
+            if (Object.prototype.hasOwnProperty.call(source, key)) {
+                destination[key] = source[key];
+            }
+        }
+        return destination;
+    };
+}
+if (typeof $ !== 'function') {
+    $ = function(id) {
+        return document.getElementById(id);
+    };
+}
+if (typeof $$ !== 'function') {
+    $$ = function(selector) {
+        return document.querySelectorAll(selector);
+    };
+}
+
 var openid = {
     version: '1.3-beta1', // version constant
     demo: false,
     demo_text: null,
     cookie_expires: 6 * 30, // 6 months.
     cookie_name: 'openid_provider',
+    identifier_cookie_name: 'openid_identifier',
     cookie_path: '/',
 
     img_path: 'images/',
@@ -43,21 +69,19 @@ var openid = {
         Object.extend(providers, providers_small);
         var openid_btns = $('openid_btns');
         this.input_id = input_id;
-        $('openid_choice').setStyle({
-            display: 'block'
-        });
+        $('openid_choice').style.display = 'block';
         $('openid_input_area').innerHTML = "";
         var i = 0;
         // add box for each provider
         var html = '';
-        for (id in providers_large) {
+        for (var id in providers_large) {
             if (providers_large.hasOwnProperty(id)) {
                 html += this.getBoxHTML(id, providers_large[id], (this.all_small ? 'small' : 'large'), i++);
             }
         }
         if (providers_small) {
             html += '<br/>';
-            for (id in providers_small) {
+            for (var id in providers_small) {
                 if (providers_small.hasOwnProperty(id)) {
                     html += this.getBoxHTML(id, providers_small[id], 'small', i++);
                 }
@@ -68,6 +92,10 @@ var openid = {
         var box_id = this.readCookie();
         if (box_id) {
             this.signin(box_id, true);
+        }
+        var identifier = this.readCookie(this.identifier_cookie_name);
+        if (identifier) {
+            this.restoreIdentifier(identifier);
         }
     },
 
@@ -130,10 +158,20 @@ var openid = {
         if (url) {
             url = url.replace('{username}', username);
             openid.setOpenIdUrl(url);
+        } else {
+            // The "OpenID" provider accepts a full identifier typed by the
+            // user, so read it directly from the input box.
+            var input = document.getElementById(openid.input_id);
+            if (input) {
+                url = input.value;
+            }
         }
         if (openid.demo) {
             alert(openid.demo_text + "\r\n" + document.getElementById(openid.input_id).value);
             return false;
+        }
+        if (url && url != 'http://') {
+            openid.setCookie(url, openid.identifier_cookie_name);
         }
         return true;
     },
@@ -157,7 +195,7 @@ var openid = {
         // remove previous highlight.
         var highlight = $('openid_highlight');
         if (highlight) {
-            fc = highlight.firstChild;
+            var fc = highlight.firstChild;
             highlight.parentNode.replaceChild(fc, highlight);
         }
         // add new highlight.
@@ -168,22 +206,50 @@ var openid = {
         wrapper.appendChild(box);
     },
 
-    setCookie: function(value) {
+    restoreIdentifier: function(identifier) {
+        var provider = this.providers[this.provider_id];
+        if (provider && !provider['label']) {
+            // No-label providers (e.g. Google, Yahoo) use a fixed URL that is
+            // already remembered by the highlighted button, so leave them alone.
+            return;
+        }
+        var input = document.getElementById(this.input_id);
+        if (!input) {
+            // A username-style provider was remembered; replace its input with
+            // the plain OpenID text box so we can prefill the resolved URL.
+            this.useInputBox(this.providers['openid']);
+            this.provider_url = null;
+            input = document.getElementById(this.input_id);
+        }
+        if (input) {
+            input.value = identifier;
+        }
+    },
+
+    setCookie: function(value, name) {
+        name = name || this.cookie_name;
         var date = new Date();
         date.setTime(date.getTime() + (this.cookie_expires * 24 * 60 * 60 * 1000));
         var expires = "; expires=" + date.toGMTString();
-        document.cookie = this.cookie_name + "=" + value + expires + "; path=" + this.cookie_path;
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=" + this.cookie_path;
     },
 
-    readCookie: function() {
-        var nameEQ = this.cookie_name + "=";
+    readCookie: function(name) {
+        name = name || this.cookie_name;
+        var nameEQ = name + "=";
         var ca = document.cookie.split(';');
         for (var i = 0; i < ca.length; i++) {
             var c = ca[i];
             while (c.charAt(0) == ' ')
                 c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) == 0)
-                return c.substring(nameEQ.length, c.length);
+            if (c.indexOf(nameEQ) == 0) {
+                var value = c.substring(nameEQ.length, c.length);
+                try {
+                    return decodeURIComponent(value);
+                } catch (e) {
+                    return value;
+                }
+            }
         }
         return null;
     },
