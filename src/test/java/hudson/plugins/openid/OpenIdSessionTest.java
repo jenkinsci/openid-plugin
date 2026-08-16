@@ -1,16 +1,20 @@
 package hudson.plugins.openid;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
@@ -18,10 +22,8 @@ import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.discovery.DiscoveryInformation;
 
+@WithJenkins
 public class OpenIdSessionTest {
-
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
 
     private TestableOpenIdSession session;
     private static final String ENDPOINT_URL = "http://example.com/openid";
@@ -72,8 +74,8 @@ public class OpenIdSessionTest {
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() {
         // Setup mocks
         mockRequest = mock(StaplerRequest2.class);
         mockSession = mock(HttpSession.class);
@@ -83,28 +85,28 @@ public class OpenIdSessionTest {
     }
 
     @Test
-    public void testDoCommenceLoginWithNullRequest() throws Exception {
+    public void testDoCommenceLoginWithNullRequest(JenkinsRule j) throws Exception {
         session = new TestableOpenIdSession(null);
         HttpResponse response = session.doCommenceLogin();
 
-        assertNotNull("Response should not be null", response);
-        assertTrue("CommenceLogin should have been called", session.wasCommenceLoginCalled());
+        assertNotNull(response, "Response should not be null");
+        assertTrue(session.wasCommenceLoginCalled(), "CommenceLogin should have been called");
         // No session invalidation should occur with null request
     }
 
     @Test
-    public void testDoCommenceLoginWithValidRequest() throws Exception {
+    public void testDoCommenceLoginWithValidRequest(JenkinsRule j) throws Exception {
         session = new TestableOpenIdSession(mockRequest);
 
         String originalSessionId = mockSession.getId();
 
         HttpResponse response = session.doCommenceLogin();
 
-        assertNotNull("Response should not be null", response);
-        assertTrue("CommenceLogin should have been called", session.wasCommenceLoginCalled());
+        assertNotNull(response, "Response should not be null");
+        assertTrue(session.wasCommenceLoginCalled(), "CommenceLogin should have been called");
 
         String newSessionId = mockSession.getId();
-        assertNotEquals("Session should have been invalidated", originalSessionId, newSessionId);
+        assertNotEquals(originalSessionId, newSessionId, "Session should have been invalidated");
 
         // Verify that invalidate was called
         verify(mockSession).invalidate();

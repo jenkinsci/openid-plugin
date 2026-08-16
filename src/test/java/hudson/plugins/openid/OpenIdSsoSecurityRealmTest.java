@@ -27,7 +27,10 @@ import static hudson.plugins.openid.OpenIdTestService.AX_EXTENSION;
 import static hudson.plugins.openid.OpenIdTestService.SREG_EXTENSION;
 import static hudson.plugins.openid.OpenIdTestService.TEAM_EXTENSION;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -41,16 +44,18 @@ import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.util.HttpClientFactory;
 
 /**
  * @author Paul Sandoz
  */
+@WithJenkins
 public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
 
     private static final String FAKE_PROXY_PASSWORD = "mrwayne";
@@ -59,14 +64,16 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     private static final int FAKE_JENKINS_PROXY_PORT = 1234;
     private static final String FAKE_PROXY_NAME = "fakeproxy.jenkins-ci.org";
 
-    @Rule
-    public OpenIdRule jr = new SsoSecurityRealmTestRule();
+    @BeforeEach
+    public void resetProxy() {
+        HttpClientFactory.setProxyProperties(null);
+    }
 
-    void _testLogin(String userName) throws Exception {
-        WebClient wc = jr.createWebClient();
+    void _testLogin(JenkinsRule j, OpenIdTestService openid, String userName) throws Exception {
+        WebClient wc = j.createWebClient();
 
-        OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(jr.openid.url);
-        jr.jenkins.setSecurityRealm(realm);
+        OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
+        j.jenkins.setSecurityRealm(realm);
 
         HtmlPage top = wc.goTo("");
         top = top.getAnchorByText("log in").click();
@@ -76,7 +83,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         Authentication a =
                 wc.executeOnServer(() -> SecurityContextHolder.getContext().getAuthentication());
         assertTrue(a instanceof UsernamePasswordAuthenticationToken);
-        for (String team : jr.openid.teams) {
+        for (String team : openid.teams) {
             assertTrue(isTeamAGrantedAuthority(a.getAuthorities(), team));
         }
 
@@ -88,7 +95,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         assertNotNull(p);
 
         assertEquals(1, p.getIdentifiers().size());
-        assertThat(p.getIdentifiers().iterator().next(), containsString(jr.openid.getUserIdentity()));
+        assertThat(p.getIdentifiers().iterator().next(), containsString(openid.getUserIdentity()));
     }
 
     private boolean isTeamAGrantedAuthority(GrantedAuthority[] gas, String team) {
@@ -102,95 +109,95 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     }
 
     @Test
-    public void testLoginWithAllExtensions() throws Exception {
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+    public void testLoginWithAllExtensions(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 getProps(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
 
-        _testLogin(jr.openid.props.get(IdProperty.nick));
+        _testLogin(j, openid, openid.props.get(IdProperty.nick));
     }
 
     @Test
-    public void testLoginWithWithoutAXExtension() throws Exception {
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+    public void testLoginWithWithoutAXExtension(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 getProps(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, TEAM_EXTENSION));
 
-        _testLogin(jr.openid.props.get(IdProperty.nick));
+        _testLogin(j, openid, openid.props.get(IdProperty.nick));
     }
 
     @Test
-    public void testLoginWithWithoutAXExtensionAndNick() throws Exception {
+    public void testLoginWithWithoutAXExtensionAndNick(JenkinsRule j) throws Exception {
         Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.nick);
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 props,
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, TEAM_EXTENSION));
 
-        _testLogin(jr.openid.props.get(IdProperty.email));
+        _testLogin(j, openid, openid.props.get(IdProperty.email));
     }
 
     @Test
-    public void testLoginWithWithoutAXExtensionAndNickAndEmail() throws Exception {
+    public void testLoginWithWithoutAXExtensionAndNickAndEmail(JenkinsRule j) throws Exception {
         Map<OpenIdTestService.IdProperty, String> props = getProps();
         props.put(
                 OpenIdTestService.IdProperty.email2,
                 props.get(OpenIdTestService.IdProperty.email)); // TODO: better define how to get UserIdentity
         props.remove(OpenIdTestService.IdProperty.nick);
         props.remove(OpenIdTestService.IdProperty.email);
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 props,
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(OpenIdTestService.SREG_EXTENSION, OpenIdTestService.TEAM_EXTENSION));
 
-        _testLogin(jr.openid.getUserIdentity());
+        _testLogin(j, openid, openid.getUserIdentity());
     }
 
     @Test
-    public void testLoginWithWithoutSRegExtension() throws Exception {
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+    public void testLoginWithWithoutSRegExtension(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 getProps(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(AX_EXTENSION, TEAM_EXTENSION));
 
-        _testLogin(jr.openid.props.get(IdProperty.email));
+        _testLogin(j, openid, openid.props.get(IdProperty.email));
     }
 
     @Test
-    public void testLoginWithWithoutSRegExtensionAndEmailAddress() throws Exception {
+    public void testLoginWithWithoutSRegExtensionAndEmailAddress(JenkinsRule j) throws Exception {
         Map<OpenIdTestService.IdProperty, String> props = getProps();
         props.put(
                 OpenIdTestService.IdProperty.email2,
                 props.get(OpenIdTestService.IdProperty.email)); // TODO: better define how to get UserIdentity
         props.remove(OpenIdTestService.IdProperty.email);
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 props,
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(OpenIdTestService.AX_EXTENSION, OpenIdTestService.TEAM_EXTENSION));
 
-        _testLogin(jr.openid.props.get(IdProperty.email2));
+        _testLogin(j, openid, openid.props.get(IdProperty.email2));
     }
 
     @Test
-    public void testProxyInformationAvailableForCreateManager() throws Exception {
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+    public void testProxyInformationAvailableForCreateManager(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 getProps(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
-        jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME, FAKE_JENKINS_PROXY_PORT);
+        j.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME, FAKE_JENKINS_PROXY_PORT);
 
         try {
-            OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(jr.openid.url);
+            OpenIdSsoSecurityRealm realm = new OpenIdSsoSecurityRealm(openid.url);
             realm.createManager();
         } catch (DiscoveryException e) {
             // This is expected since the proxy is fake. Hence, discovery will
@@ -203,16 +210,16 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     }
 
     @Test
-    public void testProxyInformationAvailableForDiscoverNoCredentials() throws Exception {
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+    public void testProxyInformationAvailableForDiscoverNoCredentials(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 getProps(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
 
-        jr.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME, FAKE_JENKINS_PROXY_PORT);
+        j.jenkins.proxy = new ProxyConfiguration(FAKE_PROXY_NAME, FAKE_JENKINS_PROXY_PORT);
         try {
-            new OpenIdSsoSecurityRealm(jr.openid.url);
+            new OpenIdSsoSecurityRealm(openid.url);
         } catch (DiscoveryException e) {
             // This is expected since the proxy is fake. Hence, discovery will
             // not be possible
@@ -229,17 +236,17 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     }
 
     @Test
-    public void testProxyInformationAvailableForDiscoverWithCredentials() throws Exception {
-        jr.openid = new OpenIdTestService(
-                jr.getServiceUrl(),
+    public void testProxyInformationAvailableForDiscoverWithCredentials(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
                 getProps(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
 
-        jr.jenkins.proxy = new ProxyConfiguration(
+        j.jenkins.proxy = new ProxyConfiguration(
                 FAKE_PROXY_NAME, FAKE_PROXY_PORT_ALTERNATIVE, FAKE_PROXY_USER_NAME, FAKE_PROXY_PASSWORD);
         try {
-            new OpenIdSsoSecurityRealm(jr.openid.url);
+            new OpenIdSsoSecurityRealm(openid.url);
         } catch (DiscoveryException e) {
             // This is expected since the proxy is fake. Hence, discovery will
             // not be possible
@@ -252,14 +259,5 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         assertEquals(
                 FAKE_PROXY_USER_NAME, HttpClientFactory.getProxyProperties().getUserName());
         assertEquals(FAKE_PROXY_PASSWORD, HttpClientFactory.getProxyProperties().getPassword());
-    }
-
-    public static class SsoSecurityRealmTestRule extends OpenIdTestCase.OpenIdRule {
-        @Before
-        public void before() throws Throwable {
-            super.before();
-
-            HttpClientFactory.setProxyProperties(null);
-        }
     }
 }
