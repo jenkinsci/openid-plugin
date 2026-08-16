@@ -1,28 +1,17 @@
 /*
  * Simple OpenID Plugin
- * http://code.google.com/p/openid-selector/
+ * https://code.google.com/p/openid-selector/
  * This code is licensed under the New BSD License.
 */
 
+/*
+ * OpenID 2.0 is deprecated: the major providers (Google, Yahoo, AOL,
+ * MyOpenID, LiveJournal, WordPress, Blogger, Verisign, ClaimID, ClickPass)
+ * have all shut down their endpoints. Only the custom-identifier entry
+ * remains, which works with self-hosted and enterprise OpenID providers.
+ */
+
 var providers_large = {
-    google: {
-        name: 'Google',
-        url: 'https://www.google.com/accounts/o8/id'
-    },
-    yahoo: {
-        name: 'Yahoo',
-        url: 'http://me.yahoo.com/'
-    },
-    aol: {
-        name: 'AOL',
-        label: 'Enter your AOL screenname.',
-        url: 'http://openid.aol.com/{username}'
-    },
-    myopenid: {
-        name: 'MyOpenID',
-        label: 'Enter your MyOpenID username.',
-        url: 'http://{username}.myopenid.com/'
-    },
     openid: {
         name: 'OpenID',
         label: 'Enter your OpenID.',
@@ -30,48 +19,7 @@ var providers_large = {
     }
 };
 
-var providers_small = {
-    livejournal: {
-        name: 'LiveJournal',
-        label: 'Enter your Livejournal username.',
-        url: 'http://{username}.livejournal.com/'
-    },
-    wordpress: {
-        name: 'Wordpress',
-        label: 'Enter your Wordpress.com username.',
-        url: 'http://{username}.wordpress.com/'
-    },
-    blogger: {
-        name: 'Blogger',
-        label: 'Your Blogger account',
-        url: 'http://{username}.blogspot.com/'
-    },
-    verisign: {
-        name: 'Verisign',
-        label: 'Your Verisign username',
-        url: 'http://{username}.pip.verisignlabs.com/'
-    },
-    launchpad: {
-        name: 'Launchpad',
-        label: 'Your Launchpad username',
-        url: 'https://launchpad.net/~{username}'
-    },
-    claimid: {
-        name: 'ClaimID',
-        label: 'Your ClaimID username',
-        url: 'http://claimid.com/{username}'
-    },
-    clickpass: {
-        name: 'ClickPass',
-        label: 'Enter your ClickPass username',
-        url: 'http://clickpass.com/public/{username}'
-    },
-    google_profile: {
-        name: 'Google Profile',
-        label: 'Enter your Google Profile username',
-        url: 'http://www.google.com/profiles/{username}'
-    }
-};
+var providers_small = {};
 
 openid.locale = 'en';
 openid.sprite = 'en'; // reused in german& japan localization
