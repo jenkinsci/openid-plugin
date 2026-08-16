@@ -33,6 +33,7 @@ import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.security.SecurityRealm;
 import java.io.IOException;
+import java.net.URI;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalConfigurationCategory;
 import jenkins.model.Jenkins;
@@ -68,33 +69,69 @@ public class OpenIdLoginService extends FederatedLoginService {
     private static boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName() + ".disabled");
 
     private boolean isSafeRedirectTarget(String url) {
-        if (url == null || url.trim().isEmpty()) {
+        if (url == null) {
             return false;
         }
 
+        String target = url.trim();
+        if (target.isEmpty()) {
+            return false;
+        }
+
+        // Backslashes are never part of a legitimate same-origin redirect and
+        // can be used to smuggle a protocol-relative URL past prefix checks
+        // (e.g. "/\evil.com" becomes "//evil.com" in some browsers).
+        if (target.indexOf('\\') >= 0 || target.startsWith("//")) {
+            return false;
+        }
+
+        URI uri;
+        try {
+            uri = URI.create(target);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        // No scheme and no authority: a same-origin path such as "/job/foo".
+        if (uri.getScheme() == null && uri.getAuthority() == null) {
+            return target.startsWith("/");
+        }
+
+        // An absolute URL (https://…) or any URL carrying an authority. Only
+        // allow it when it points back at this Jenkins instance.
         String rootUrl = Jenkins.get().getRootUrl();
-        if (rootUrl != null && url.startsWith(rootUrl)) {
-            return true;
+        if (rootUrl == null) {
+            return false;
         }
-
-        StaplerRequest2 req = Stapler.getCurrentRequest2();
-        if (req != null) {
-            String contextPath = req.getContextPath();
-            if (contextPath == null) {
-                contextPath = "";
-            }
-
-            // Ensure it starts with a slash, or the specific context path (e.g., "/jenkins/")
-            if (url.startsWith("/") || url.startsWith(contextPath + "/")) {
-                // Prevent protocol relative redirects (e.g., "//evil.com")
-                if (url.startsWith("//")) {
-                    return false;
-                }
-                return true;
-            }
+        try {
+            return sameOrigin(uri, URI.create(rootUrl));
+        } catch (IllegalArgumentException e) {
+            return false;
         }
+    }
 
-        return false;
+    private static boolean sameOrigin(URI candidate, URI root) {
+        String scheme = candidate.getScheme();
+        String host = candidate.getHost();
+        return scheme != null
+                && host != null
+                && scheme.equalsIgnoreCase(root.getScheme())
+                && host.equalsIgnoreCase(root.getHost())
+                && effectivePort(candidate) == effectivePort(root);
+    }
+
+    private static int effectivePort(URI uri) {
+        int port = uri.getPort();
+        if (port != -1) {
+            return port;
+        }
+        if ("https".equalsIgnoreCase(uri.getScheme())) {
+            return 443;
+        }
+        if ("http".equalsIgnoreCase(uri.getScheme())) {
+            return 80;
+        }
+        return -1;
     }
 
     public OpenIdLoginService() {
