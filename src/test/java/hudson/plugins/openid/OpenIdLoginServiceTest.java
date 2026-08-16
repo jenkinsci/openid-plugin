@@ -26,8 +26,8 @@ package hudson.plugins.openid;
 import static hudson.plugins.openid.OpenIdTestService.AX_EXTENSION;
 import static hudson.plugins.openid.OpenIdTestService.SREG_EXTENSION;
 import static hudson.plugins.openid.OpenIdTestService.TEAM_EXTENSION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -38,95 +38,101 @@ import jenkins.model.Jenkins;
 import org.htmlunit.ElementNotFoundException;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.DummySecurityRealm;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.jvnet.hudson.test.MockAuthorizationStrategy;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * @author Paul Sandoz
  */
+@WithJenkins
 public class OpenIdLoginServiceTest extends OpenIdTestCase {
-    private static DummySecurityRealm realm;
+    private DummySecurityRealm realm;
 
-    @Rule
-    public OpenIdRule jr = new LoginServiceTestRule();
+    @BeforeEach
+    public void setUp(JenkinsRule j) {
+        realm = j.createDummySecurityRealm();
+        j.jenkins
+                .getDescriptorByType(OpenIdLoginService.GlobalConfigurationImpl.class)
+                .setEnabled(true);
+    }
 
     @Issue("JENKINS-9792")
     @Test
-    @Ignore("Failing manually")
-    public void testLoginWithoutReadAccess() throws Exception {
-        jr.openid = createServer();
+    @Disabled("Failing manually")
+    public void testLoginWithoutReadAccess(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createServer(j);
 
-        jr.jenkins.setSecurityRealm(realm);
+        j.jenkins.setSecurityRealm(realm);
         realm.loadUserByUsername("aliceW");
         User u = User.getById("aliceW", true);
-        associateUserWithOpenId(u);
+        associateUserWithOpenId(j, openid, u);
 
         // configure Jenkins to allow no access at all without login
-        jr.jenkins.setAuthorizationStrategy(new MockAuthorizationStrategy()
+        j.jenkins.setAuthorizationStrategy(new MockAuthorizationStrategy()
                 .grant(Jenkins.ADMINISTER)
                 .everywhere()
                 .to("authenticated"));
 
         // try to login
-        login(jr.createWebClient());
+        login(j, openid, j.createWebClient());
     }
 
     @Test
-    @Ignore("Failing manually")
-    public void testAssociateThenLogoutThenLogInWithOpenID() throws Exception {
-        jr.openid = createServer();
-        jr.jenkins.setSecurityRealm(realm);
+    @Disabled("Failing manually")
+    public void testAssociateThenLogoutThenLogInWithOpenID(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createServer(j);
+        j.jenkins.setSecurityRealm(realm);
         realm.loadUserByUsername("aliceW");
         User u = User.getById("aliceW", true);
-        associateUserWithOpenId(u);
+        associateUserWithOpenId(j, openid, u);
 
         // Re-login
-        login(jr.createWebClient());
+        login(j, openid, j.createWebClient());
     }
 
     /**
      * Associates the OpenID identity of the user with {@link #realm}.
      */
-    private void associateUserWithOpenId(User u) throws Exception {
-        WebClient wc = jr.createWebClient().login(u.getId(), u.getId() /*assumes password==name*/);
+    private void associateUserWithOpenId(JenkinsRule j, OpenIdTestService openid, User u) throws Exception {
+        WebClient wc = j.createWebClient().login(u.getId(), u.getId() /*assumes password==name*/);
 
         // Associate an OpenID with an existing user
-        HtmlPage associated = wc.goTo("federatedLoginService/openid/startAssociate?openid=" + jr.openid.url);
-        // assertTrue(associated.getDocumentURI().endsWith("federatedLoginService/openid/onAssociationSuccess"));
-        // //TODO: not yet implemented
+        wc.goTo("federatedLoginService/openid/startAssociate?openid=" + openid.url);
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertEquals(1, p.getIdentifiers().size());
-        assertEquals(jr.openid.getUserIdentity(), p.getIdentifiers().iterator().next());
+        assertEquals(openid.getUserIdentity(), p.getIdentifiers().iterator().next());
     }
 
     @Test
-    @Ignore("Failing manually")
-    public void testLogInWithOpenIDAndSignUp() throws Exception {
-        jr.openid = createServer();
+    @Disabled("Failing manually")
+    public void testLogInWithOpenIDAndSignUp(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createServer(j);
 
-        realm = jr.createDummySecurityRealm();
-        jr.jenkins.setSecurityRealm(realm);
+        realm = j.createDummySecurityRealm();
+        j.jenkins.setSecurityRealm(realm);
 
-        WebClient wc = jr.createWebClient();
+        WebClient wc = j.createWebClient();
         // Workaround failing ajax requests to build queue
         wc.getOptions().setThrowExceptionOnScriptError(false);
 
         // Login with OpenID as an unregistered user
         HtmlPage login = wc.goTo("federatedLoginService/openid/login?from=/");
         HtmlForm loginForm = getFormById(login, "openid_form");
-        loginForm.getInputByName("openid").setValue(jr.openid.url);
-        HtmlPage signUp = jr.submit(loginForm);
+        loginForm.getInputByName("openid").setValue(openid.url);
+        HtmlPage signUp = j.submit(loginForm);
 
         // Sign up user
         HtmlForm signUpForm = getFormByAction(signUp, "/securityRealm/createAccountWithFederatedIdentity");
         signUpForm.getInputByName("password1").setValue("x");
         signUpForm.getInputByName("password2").setValue("x");
-        HtmlPage loggedIn = jr.submit(signUpForm);
+        HtmlPage loggedIn = j.submit(signUpForm);
 
         assertNotNull(loggedIn.getAnchorByHref("/logout"));
         assertNotNull(loggedIn.getAnchorByHref("/user/aliceW"));
@@ -134,25 +140,25 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
         wc.goTo("logout");
 
         // Re-login
-        login(wc);
+        login(j, openid, wc);
     }
 
     /**
      * Creates a OpenID server.
      */
-    private OpenIdTestService createServer() throws IOException {
-        return new OpenIdTestService(
-                jr.getServiceUrl(),
+    private OpenIdTestService createServer(JenkinsRule j) throws IOException {
+        return createOpenIdServer(
+                j,
                 getProps(),
                 Sets.newHashSet("foo", "bar"),
                 Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
     }
 
-    private void login(WebClient wc) throws Exception {
+    private void login(JenkinsRule j, OpenIdTestService openid, WebClient wc) throws Exception {
         HtmlPage login = wc.goTo("federatedLoginService/openid/login?from=/");
         HtmlForm loginForm = getFormById(login, "openid_form");
-        loginForm.getInputByName("openid").setValue(jr.openid.url);
-        HtmlPage loggedIn = jr.submit(loginForm);
+        loginForm.getInputByName("openid").setValue(openid.url);
+        HtmlPage loggedIn = j.submit(loginForm);
 
         assertNotNull(loggedIn.getAnchorByHref("/jenkins/logout"));
         assertNotNull(loggedIn.getAnchorByHref("/jenkins/user/aliceW"));
@@ -172,14 +178,5 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
             throw new ElementNotFoundException("form", name, value);
         }
         return forms.get(0);
-    }
-
-    public static class LoginServiceTestRule extends OpenIdTestCase.OpenIdRule {
-        public void before() throws Throwable {
-            super.before();
-            realm = createDummySecurityRealm();
-            jenkins.getDescriptorByType(OpenIdLoginService.GlobalConfigurationImpl.class)
-                    .setEnabled(true);
-        }
     }
 }

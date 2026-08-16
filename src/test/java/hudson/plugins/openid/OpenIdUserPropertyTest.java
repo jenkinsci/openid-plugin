@@ -23,31 +23,40 @@
  */
 package hudson.plugins.openid;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import hudson.model.User;
 import hudson.security.HudsonPrivateSecurityRealm;
 import org.htmlunit.html.HtmlPage;
-import org.jvnet.hudson.test.HudsonTestCase;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * @author Kohsuke Kawaguchi
  */
-public class OpenIdUserPropertyTest extends HudsonTestCase {
-    public void testRoundtrip() throws Exception {
+@WithJenkins
+public class OpenIdUserPropertyTest {
+
+    @Test
+    public void testRoundtrip(JenkinsRule j) throws Exception {
         HudsonPrivateSecurityRealm realm = new HudsonPrivateSecurityRealm(false);
-        hudson.setSecurityRealm(realm);
+        j.jenkins.setSecurityRealm(realm);
         User u = realm.createAccount("alice", "alice");
 
         // submit empty config
-        WebClient wc = new WebClient().login("alice", "alice");
+        WebClient wc = j.createWebClient().login("alice", "alice");
         HtmlPage configure = wc.goTo("user/alice/account/");
-        submit(configure.getFormByName("config"));
+        j.submit(configure.getFormByName("config"));
 
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);
         assertTrue(p.getIdentifiers().isEmpty());
 
         // submit a non-empty config
         p.addIdentifier("http://me.cloudbees.com/");
-        submit(configure.getFormByName("config"));
+        j.submit(configure.getFormByName("config"));
         p = u.getProperty(OpenIdUserProperty.class);
         assertTrue(p.has("http://me.cloudbees.com/"));
     }
@@ -56,18 +65,19 @@ public class OpenIdUserPropertyTest extends HudsonTestCase {
      * Configuration roundtrip testing when the security realm doesn't support
      * OpenID.
      */
-    public void testDisabledRoundtrip() throws Exception {
+    @Test
+    public void testDisabledRoundtrip(JenkinsRule j) throws Exception {
         User u = User.get("alice");
         u.save();
 
         // submit empty config
-        WebClient wc = createWebClient();
+        WebClient wc = j.createWebClient();
         HtmlPage pg = wc.goTo("user/alice/account/");
 
         // should see no OpenID in the page
         assertFalse(pg.getWebResponse().getContentAsString().contains("OpenID"));
 
-        submit(pg.getFormByName("config"));
+        j.submit(pg.getFormByName("config"));
 
         // should see No OpenID descriptor
         OpenIdUserProperty p = u.getProperty(OpenIdUserProperty.class);

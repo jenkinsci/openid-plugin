@@ -26,19 +26,16 @@ package hudson.plugins.openid;
 import static hudson.plugins.openid.OpenIdTestService.IdProperty;
 
 import com.google.common.collect.Maps;
-import hudson.model.UnprotectedRootAction;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
-import org.junit.Rule;
+import java.util.Set;
 import org.jvnet.hudson.test.JenkinsRule;
 
 /**
  * @author Paul Sandoz
  */
 public class OpenIdTestCase {
-
-    @Rule
-    public OpenIdRule jr = new OpenIdRule();
 
     Map<IdProperty, String> getPropsAllDifferentEmails() {
         Map<IdProperty, String> props = getProps();
@@ -90,19 +87,20 @@ public class OpenIdTestCase {
         return props;
     }
 
-    public static class OpenIdRule extends JenkinsRule implements UnprotectedRootAction {
-        public OpenIdTestService openid;
-
-        public void before() throws Throwable {
-            super.before();
-
-            // Set to null to avoid errors on association POST requests
-            // set from openid4java
-            jenkins.setCrumbIssuer(null);
-        }
-
-        String getServiceUrl() throws IOException {
-            return getURL().toExternalForm() + getUrlName() + "/openid/";
-        }
+    /**
+     * Creates the mock OpenID server, registers it as an unprotected root
+     * action, and disables CSRF crumbs for the test.
+     */
+    static OpenIdTestService createOpenIdServer(
+            JenkinsRule j,
+            Map<IdProperty, String> props,
+            Set<String> teams,
+            List<OpenIdTestService.ProcessExtension> extensions)
+            throws IOException {
+        j.jenkins.setCrumbIssuer(null);
+        String url = j.getURL().toExternalForm() + "openid/";
+        OpenIdTestService openid = new OpenIdTestService(url, props, teams, extensions);
+        j.jenkins.getActions().add(openid);
+        return openid;
     }
 }

@@ -26,6 +26,7 @@ package hudson.plugins.openid;
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import com.cloudbees.openid4java.team.TeamExtensionRequest;
 import com.cloudbees.openid4java.team.TeamExtensionResponse;
+import hudson.model.UnprotectedRootAction;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ import org.openid4java.server.ServerManager;
  * @author Kohsuke Kawaguchi
  * @author Paul Sandoz
  */
-public class OpenIdTestService {
+public class OpenIdTestService implements UnprotectedRootAction {
 
     static class MessageResponse implements HttpResponse {
         private final Message msg;
@@ -271,6 +272,21 @@ public class OpenIdTestService {
         } catch (jakarta.servlet.ServletException | IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getUrlName() {
+        return "openid";
+    }
+
+    @Override
+    public String getIconFileName() {
+        return null;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return null;
     }
 
     static class ServiceTeamExtensionResponse extends TeamExtensionResponse {
