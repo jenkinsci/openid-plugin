@@ -3,7 +3,6 @@
   <div>
     <link type="text/css" rel="stylesheet" href="${resURL}/openid-assets/openid.css"/>
     <script type="text/javascript" src="${resURL}/openid-assets/openid-prototype.js"/>
-    <script type="text/javascript" src="${resURL}/openid-assets/openid-en.js"/>
 
     <div id="openid_input_area">
       <input id="openid" name="openid_identifier" type="text" class="jenkins-input" value="https://"/>
