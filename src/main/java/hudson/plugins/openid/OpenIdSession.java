@@ -25,14 +25,16 @@ package hudson.plugins.openid;
 
 import com.cloudbees.openid4java.team.TeamExtensionFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.Functions;
 import hudson.model.Failure;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import jenkins.model.Jenkins;
-import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
@@ -101,7 +103,33 @@ public abstract class OpenIdSession {
         // remember this in the session
         Stapler.getCurrentRequest2().getSession().setAttribute(SESSION_NAME, this);
 
-        return new HttpRedirect(url);
+        return clientRedirectTo(url);
+    }
+
+    /**
+     * Sends the user agent to the given URL using a client-side redirect.
+     * <p>
+     * A plain HTTP redirect sent in response to a form submission is subject to
+     * the Content Security Policy {@code form-action} directive in Chrome, which
+     * blocks navigation to the external OpenID provider when Jenkins enforces a
+     * CSP (enabled by default since Jenkins 2.591). Emitting an HTML page with a
+     * meta refresh, like {@code jenkins.util.ClientHttpRedirect} (available since
+     * Jenkins 2.550), is not restricted by {@code form-action}.
+     */
+    static HttpResponse clientRedirectTo(String url) {
+        return new HttpResponse() {
+            @Override
+            public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node)
+                    throws IOException {
+                String target = Functions.htmlAttributeEscape(url);
+                rsp.setContentType("text/html;charset=UTF-8");
+                PrintWriter out = rsp.getWriter();
+                out.printf(
+                        "<html><head><meta http-equiv='refresh' content='0;url=%1$s'/></head>"
+                                + "<body><a href='%1$s'>Continue to the OpenID provider</a></body></html>",
+                        target);
+            }
+        };
     }
 
     /**

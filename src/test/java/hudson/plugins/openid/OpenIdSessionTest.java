@@ -3,12 +3,16 @@ package hudson.plugins.openid;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import org.junit.jupiter.api.BeforeEach;
@@ -110,5 +114,27 @@ public class OpenIdSessionTest {
 
         // Verify that invalidate was called
         verify(mockSession).invalidate();
+    }
+
+    /**
+     * A redirect to the OpenID provider must not be an HTTP 302: Chrome applies
+     * the CSP {@code form-action} directive to redirects that follow a form
+     * submission and would block the navigation out of Jenkins.
+     */
+    @Test
+    public void testClientRedirectToUsesClientSideRedirect(JenkinsRule j) throws Exception {
+        String url = "https://id.example.com/service?openid.mode=checkid_setup";
+
+        StaplerRequest2 request = mock(StaplerRequest2.class);
+        when(request.getContextPath()).thenReturn("/jenkins");
+        StaplerResponse2 response = mock(StaplerResponse2.class);
+        StringWriter content = new StringWriter();
+        when(response.getWriter()).thenReturn(new PrintWriter(content));
+
+        OpenIdSession.clientRedirectTo(url).generateResponse(request, response, null);
+
+        verify(response).setContentType("text/html;charset=UTF-8");
+        verify(response, never()).sendRedirect(anyString());
+        assertTrue(content.toString().contains(url), "The page must navigate to the OpenID provider");
     }
 }
