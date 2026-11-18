@@ -158,16 +158,11 @@ public class OpenIdSsoSecurityRealm extends SecurityRealm {
      * The login process starts from here.
      */
     public HttpResponse doCommenceLogin(@QueryParameter String from) throws IOException, OpenIDException {
-        if (from == null || !from.startsWith("/")) {
-            StaplerRequest2 currentRequest = Stapler.getCurrentRequest2();
-            if (currentRequest.getHeader("Referer") != null) {
-                from = currentRequest.getHeader("Referer");
-            } else {
-                from = Jenkins.get().getRootUrl();
-            }
-        }
-
-        String referer = from;
+        StaplerRequest2 currentRequest = Stapler.getCurrentRequest2();
+        String referer = RedirectUtils.safeRedirectTarget(
+                from,
+                currentRequest != null ? currentRequest.getHeader("Referer") : null,
+                Jenkins.get().getRootUrl());
 
         return new OpenIdSession(getManager(), endpoint, "securityRealm/finishLogin") {
             @Override

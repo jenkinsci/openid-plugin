@@ -29,6 +29,7 @@ import static hudson.plugins.openid.OpenIdTestService.TEAM_EXTENSION;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,6 +45,7 @@ import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.htmlunit.html.HtmlPage;
+import org.htmlunit.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -98,6 +100,43 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         assertThat(p.getIdentifiers().iterator().next(), containsString(openid.getUserIdentity()));
     }
 
+    @Test
+    public void testExternalPostLoginRedirectIsRejected(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
+                getProps(),
+                Sets.newHashSet("foo", "bar"),
+                Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+        j.jenkins.setSecurityRealm(new OpenIdSsoSecurityRealm(openid.url));
+
+        WebClient wc = j.createWebClient();
+        // SECURITY-2997: a protocol-relative target must not redirect off-site.
+        HtmlPage top = wc.goTo("securityRealm/commenceLogin?from=//evil.example.com/");
+
+        assertNotNull(top.getAnchorByHref("/jenkins/logout"));
+        assertEquals(j.getURL().getHost(), top.getUrl().getHost());
+    }
+
+    @Test
+    public void testSessionIsRenewedOnLogin(JenkinsRule j) throws Exception {
+        OpenIdTestService openid = createOpenIdServer(
+                j,
+                getProps(),
+                Sets.newHashSet("foo", "bar"),
+                Lists.newArrayList(SREG_EXTENSION, AX_EXTENSION, TEAM_EXTENSION));
+        j.jenkins.setSecurityRealm(new OpenIdSsoSecurityRealm(openid.url));
+
+        WebClient wc = j.createWebClient();
+        wc.goTo("securityRealm/commenceLogin");
+        Cookie before = wc.getCookieManager().getCookie("JSESSIONID");
+        assertNotNull(before, "Starting the login flow should create a session");
+
+        wc.goTo("securityRealm/commenceLogin");
+        Cookie after = wc.getCookieManager().getCookie("JSESSIONID");
+        assertNotNull(after);
+        assertNotEquals(before.getValue(), after.getValue(), "The session must be renewed when login starts");
+    }
+
     private boolean isTeamAGrantedAuthority(GrantedAuthority[] gas, String team) {
         for (GrantedAuthority ga : gas) {
             if (team.equals(ga.getAuthority())) {
@@ -122,10 +161,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     @Test
     public void testLoginWithWithoutAXExtension(JenkinsRule j) throws Exception {
         OpenIdTestService openid = createOpenIdServer(
-                j,
-                getProps(),
-                Sets.newHashSet("foo", "bar"),
-                Lists.newArrayList(SREG_EXTENSION, TEAM_EXTENSION));
+                j, getProps(), Sets.newHashSet("foo", "bar"), Lists.newArrayList(SREG_EXTENSION, TEAM_EXTENSION));
 
         _testLogin(j, openid, openid.props.get(IdProperty.nick));
     }
@@ -135,10 +171,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
         Map<IdProperty, String> props = getProps();
         props.remove(IdProperty.nick);
         OpenIdTestService openid = createOpenIdServer(
-                j,
-                props,
-                Sets.newHashSet("foo", "bar"),
-                Lists.newArrayList(SREG_EXTENSION, TEAM_EXTENSION));
+                j, props, Sets.newHashSet("foo", "bar"), Lists.newArrayList(SREG_EXTENSION, TEAM_EXTENSION));
 
         _testLogin(j, openid, openid.props.get(IdProperty.email));
     }
@@ -163,10 +196,7 @@ public class OpenIdSsoSecurityRealmTest extends OpenIdTestCase {
     @Test
     public void testLoginWithWithoutSRegExtension(JenkinsRule j) throws Exception {
         OpenIdTestService openid = createOpenIdServer(
-                j,
-                getProps(),
-                Sets.newHashSet("foo", "bar"),
-                Lists.newArrayList(AX_EXTENSION, TEAM_EXTENSION));
+                j, getProps(), Sets.newHashSet("foo", "bar"), Lists.newArrayList(AX_EXTENSION, TEAM_EXTENSION));
 
         _testLogin(j, openid, openid.props.get(IdProperty.email));
     }

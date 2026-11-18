@@ -25,7 +25,6 @@ package hudson.plugins.openid;
 
 import com.google.inject.Inject;
 import hudson.Extension;
-import hudson.Util;
 import hudson.Plugin;
 import hudson.model.Failure;
 import hudson.model.User;
@@ -33,7 +32,6 @@ import hudson.security.FederatedLoginService;
 import hudson.security.FederatedLoginServiceUserProperty;
 import hudson.security.SecurityRealm;
 import java.io.IOException;
-import java.net.URI;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalConfigurationCategory;
 import jenkins.model.Jenkins;
@@ -42,7 +40,6 @@ import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.openid4java.OpenIDException;
@@ -67,72 +64,6 @@ public class OpenIdLoginService extends FederatedLoginService {
     private final ConsumerManager manager;
 
     private static boolean disabled = Boolean.getBoolean(OpenIdLoginService.class.getName() + ".disabled");
-
-    private boolean isSafeRedirectTarget(String url) {
-        if (url == null) {
-            return false;
-        }
-
-        String target = url.trim();
-        if (target.isEmpty()) {
-            return false;
-        }
-
-        // Backslashes are never part of a legitimate same-origin redirect and
-        // can be used to smuggle a protocol-relative URL past prefix checks
-        // (e.g. "/\evil.com" becomes "//evil.com" in some browsers).
-        if (target.indexOf('\\') >= 0 || target.startsWith("//")) {
-            return false;
-        }
-
-        URI uri;
-        try {
-            uri = URI.create(target);
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-
-        // No scheme and no authority: a same-origin path such as "/job/foo".
-        if (uri.getScheme() == null && uri.getAuthority() == null) {
-            return target.startsWith("/");
-        }
-
-        // An absolute URL (https://…) or any URL carrying an authority. Only
-        // allow it when it points back at this Jenkins instance.
-        String rootUrl = Jenkins.get().getRootUrl();
-        if (rootUrl == null) {
-            return false;
-        }
-        try {
-            return sameOrigin(uri, URI.create(rootUrl));
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-    private static boolean sameOrigin(URI candidate, URI root) {
-        String scheme = candidate.getScheme();
-        String host = candidate.getHost();
-        return scheme != null
-                && host != null
-                && scheme.equalsIgnoreCase(root.getScheme())
-                && host.equalsIgnoreCase(root.getHost())
-                && effectivePort(candidate) == effectivePort(root);
-    }
-
-    private static int effectivePort(URI uri) {
-        int port = uri.getPort();
-        if (port != -1) {
-            return port;
-        }
-        if ("https".equalsIgnoreCase(uri.getScheme())) {
-            return 443;
-        }
-        if ("http".equalsIgnoreCase(uri.getScheme())) {
-            return 80;
-        }
-        return -1;
-    }
 
     public OpenIdLoginService() {
         HttpFetcherFactory fetcherFactory = new HttpFetcherFactory();
@@ -205,8 +136,8 @@ public class OpenIdLoginService extends FederatedLoginService {
                 id.id.updateProfile(u);
                 String requestedUrl = getFrom();
 
-                if (isSafeRedirectTarget(requestedUrl)) {
-                    return HttpResponses.redirectTo(requestedUrl);
+                if (RedirectUtils.isSafeRedirectTarget(requestedUrl)) {
+                    return HttpResponses.redirectTo(requestedUrl.trim());
                 }
 
                 return HttpResponses.redirectToContextRoot();
@@ -217,21 +148,9 @@ public class OpenIdLoginService extends FederatedLoginService {
     }
 
     private String getFinishUrl() {
-        StaplerRequest2 req = Stapler.getCurrentRequest2();
-        String contextPath = req.getContextPath();
-        if (Util.fixEmptyAndTrim(contextPath) == null || "/".equals(contextPath)) {
-            return "federatedLoginService/openid/finish";
-        } else {
-            // hack alert... work around some less than consistent servlet containers
-            String trimmedContextPath = contextPath;
-            if (trimmedContextPath.startsWith("/")) {
-                trimmedContextPath = trimmedContextPath.substring(1);
-            }
-            if (trimmedContextPath.endsWith("/")) {
-                trimmedContextPath = trimmedContextPath.substring(0, trimmedContextPath.length() - 1);
-            }
-            return trimmedContextPath + "/federatedLoginService/openid/finish";
-        }
+        // Jenkins.getRootUrl() already ends with the context path (when any),
+        // so this must stay relative to it.
+        return "federatedLoginService/openid/finish";
     }
 
     public HttpResponse doFinish(StaplerRequest2 request) throws IOException, OpenIDException {
@@ -259,6 +178,13 @@ public class OpenIdLoginService extends FederatedLoginService {
         }
 
         return new OpenIdSession(manager, openid, getFinishUrl()) {
+            @Override
+            protected boolean shouldInvalidateSession() {
+                // The user must stay authenticated until addToCurrentUser()
+                // runs, so the session is not renewed for this flow.
+                return false;
+            }
+
             @Override
             protected HttpResponse onSuccess(Identity identity) throws IOException {
                 new IdentityImpl(identity).addToCurrentUser();

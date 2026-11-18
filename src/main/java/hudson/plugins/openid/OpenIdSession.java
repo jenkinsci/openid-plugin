@@ -92,7 +92,7 @@ public abstract class OpenIdSession {
     public HttpResponse doCommenceLogin() throws IOException, OpenIDException {
         // Invalidate the existing session before starting a new login session
         StaplerRequest2 currentRequest = Stapler.getCurrentRequest2();
-        if (currentRequest != null) {
+        if (currentRequest != null && shouldInvalidateSession()) {
             currentRequest.getSession().invalidate();
         }
 
@@ -104,6 +104,18 @@ public abstract class OpenIdSession {
         Stapler.getCurrentRequest2().getSession().setAttribute(SESSION_NAME, this);
 
         return clientRedirectTo(url);
+    }
+
+    /**
+     * Whether the HTTP session must be renewed when the flow starts.
+     * <p>
+     * Login flows must rotate the session to prevent session fixation
+     * (CVE-2023-24444). Flows that run for an already authenticated user, such
+     * as associating an OpenID with the current account, must keep the session
+     * and its authentication state.
+     */
+    protected boolean shouldInvalidateSession() {
+        return true;
     }
 
     /**
@@ -119,8 +131,7 @@ public abstract class OpenIdSession {
     static HttpResponse clientRedirectTo(String url) {
         return new HttpResponse() {
             @Override
-            public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node)
-                    throws IOException {
+            public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node) throws IOException {
                 String target = Functions.htmlAttributeEscape(url);
                 rsp.setContentType("text/html;charset=UTF-8");
                 PrintWriter out = rsp.getWriter();
@@ -133,9 +144,7 @@ public abstract class OpenIdSession {
                                 + "<script id='redirect' data-redirect-url='%1$s' src='%2$s%3$s/scripts/redirect.js'></script>"
                                 + "</head>"
                                 + "<body><a href='%1$s'>Continue to the OpenID provider</a></body></html>",
-                        target,
-                        req.getContextPath(),
-                        Jenkins.RESOURCE_PATH);
+                        target, req.getContextPath(), Jenkins.RESOURCE_PATH);
             }
         };
     }

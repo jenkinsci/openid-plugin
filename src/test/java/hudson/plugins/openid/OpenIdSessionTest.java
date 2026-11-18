@@ -136,6 +136,7 @@ public class OpenIdSessionTest {
         verify(response).setContentType("text/html;charset=UTF-8");
         verify(response, never()).sendRedirect(anyString());
         assertTrue(content.toString().contains(url), "The page must navigate to the OpenID provider");
-        assertTrue(content.toString().contains("scripts/redirect.js"), "The navigation must use Jenkins' redirect script");
+        assertTrue(
+                content.toString().contains("scripts/redirect.js"), "The navigation must use Jenkins' redirect script");
     }
 }
