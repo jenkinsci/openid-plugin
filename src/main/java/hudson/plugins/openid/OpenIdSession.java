@@ -124,10 +124,18 @@ public abstract class OpenIdSession {
                 String target = Functions.htmlAttributeEscape(url);
                 rsp.setContentType("text/html;charset=UTF-8");
                 PrintWriter out = rsp.getWriter();
+                // Same markup as hudson.Util.printRedirect(): the script
+                // performs the navigation, the meta refresh is the fallback for
+                // browsers without JavaScript.
                 out.printf(
-                        "<html><head><meta http-equiv='refresh' content='0;url=%1$s'/></head>"
+                        "<html><head>"
+                                + "<meta http-equiv='refresh' content='1;url=%1$s'/>"
+                                + "<script id='redirect' data-redirect-url='%1$s' src='%2$s%3$s/scripts/redirect.js'></script>"
+                                + "</head>"
                                 + "<body><a href='%1$s'>Continue to the OpenID provider</a></body></html>",
-                        target);
+                        target,
+                        req.getContextPath(),
+                        Jenkins.RESOURCE_PATH);
             }
         };
     }
