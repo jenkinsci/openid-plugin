@@ -46,7 +46,9 @@ import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.HttpMethod;
 import org.htmlunit.WebRequest;
 import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlInput;
 import org.htmlunit.html.HtmlPage;
+import org.htmlunit.http.Cookie;
 import org.htmlunit.util.NameValuePair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -103,6 +105,20 @@ public class OpenIdLoginServiceTest extends OpenIdTestCase {
         FailingHttpStatusCodeException e =
                 assertThrows(FailingHttpStatusCodeException.class, () -> wc.getPage(request));
         assertEquals(403, e.getStatusCode());
+    }
+
+    @Test
+    public void testLoginPageRestoresIdentifierFromCookie() throws Exception {
+        String identifier = "https://id.example.com/michael";
+
+        WebClient wc = j.createWebClient();
+        wc.getCookieManager()
+                .addCookie(new Cookie(j.getURL().getHost(), "openid_identifier", identifier, "/", null, false));
+
+        HtmlPage login = wc.goTo("federatedLoginService/openid/login");
+        HtmlInput input = login.getHtmlElementById("openid");
+
+        assertEquals(identifier, input.getValue());
     }
 
     @Issue("JENKINS-9792")
