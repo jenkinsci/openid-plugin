@@ -25,26 +25,17 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
   <f:entry title="${%OpenIDs}">
+    <script type="text/javascript" src="${resURL}/openid-assets/openid-config.js"/>
     <ul>
       <j:forEach var="id" items="${instance.getProtectedOpenIDs()}">
         <li>
           ${id}
           <input type="hidden" value="${id.encryptedValue}" name="identifiers"/>
-          <input type="button" value="${%Delete}" class="openid-delete" />
+          <input type="button" value="${%Delete}" class="jenkins-button openid-delete" />
         </li>
       </j:forEach>
     </ul>
-    <input type="button" class='yui-button' value="${%Associate Another OpenID}"
-           onclick="window.location='${rootURL}/federatedLoginService/openid/associate'" />
-    <script>
-      Behaviour.register({
-        "INPUT.openid-delete" : function (e) {
-            makeButton(e,function(e) {
-              Element.remove(findAncestor(e.target,"LI")); // delete the whole LI
-            });
-        }
-      });
-    </script>
+    <a class="jenkins-button" href="${rootURL}/federatedLoginService/openid/associate">${%Associate Another OpenID}</a>
 
     <!-- a pointless value, just to make browser submit something even when there's no OpenID associated -->
     <input type="hidden" value="bogus" name="bogus"/>

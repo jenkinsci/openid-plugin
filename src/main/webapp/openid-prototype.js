@@ -26,6 +26,7 @@ var openid = {
     img_path: 'images/',
     signin_text: null, // text on submit button on the form
     input_id: null,
+    initialized: false,
 
     /**
      * Class constructor
@@ -34,11 +35,16 @@ var openid = {
      */
     init: function(input_id) {
         "use strict";
+        if (this.initialized) {
+            return;
+        }
+        this.initialized = true;
         this.input_id = input_id;
 
         // Hosted OpenID providers have all shut down, so the form only asks
-        // for a custom OpenID identifier, which is shown directly.
-        $('openid_form').onsubmit = this.onsubmit;
+        // for a custom OpenID identifier, which is shown directly. Use an
+        // event listener so Jenkins' own submit handler is preserved.
+        $('openid_form').addEventListener('submit', this.onsubmit);
         this.showInput();
 
         var identifier = this.readCookie(this.identifier_cookie_name);
@@ -118,3 +124,26 @@ var openid = {
         return null;
     }
 };
+
+/*
+ * Initialize the form once the DOM is ready. This is done here instead of in
+ * an inline script because Jenkins enables a Content Security Policy that
+ * blocks inline JavaScript (and with it the cookie restore/save logic).
+ */
+(function() {
+    function initForm() {
+        var config = document.getElementById('openid_form_config');
+        if (!config || !document.getElementById('openid_form')) {
+            return;
+        }
+        openid.img_path = config.getAttribute('data-openid-assets') || '';
+        openid.signin_text = config.getAttribute('data-openid-signin-text') || 'Login';
+        openid.init('openid');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initForm);
+    } else {
+        initForm();
+    }
+})();
