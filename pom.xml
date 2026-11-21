@@ -68,7 +68,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>openid4java</artifactId>
-      <version>0.9.8.0</version>
+      <version>8.v97c390826b_59</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
